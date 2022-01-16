@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Community.Archives.Ar\Community.Archives.Ar.csproj" />
+    <ProjectReference Include="..\Community.Archives.Core.Tests\Community.Archives.Core.Tests.csproj" />
   </ItemGroup>
 
 </Project>
