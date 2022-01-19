@@ -66,7 +66,9 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
 
         IArchiveReader reader = new T();
 
-        var expectedFileEntry = expectedArchive.Files.First((e) => e.FilePath == firstEntryFilePath);
+        var expectedFileEntry = expectedArchive.Files.First(
+            (e) => e.FilePath == firstEntryFilePath
+        );
         bool foundEntry = false;
         await foreach (
             var actualEntry in reader
@@ -76,7 +78,9 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         {
             if (foundEntry)
             {
-                throw new Exception($"Should only find one file but found another one: {actualEntry}");
+                throw new Exception(
+                    $"Should only find one file but found another one: {actualEntry}"
+                );
             }
 
             actualEntry.Name.Should().Be(expectedFileEntry.FilePath, "Should find this file");
@@ -85,21 +89,23 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
 
             var hash = await GetHash(hasher, actualEntry.Content).ConfigureAwait(false);
 
-            hash.Should()
-                .Be(expectedFileEntry.Hash, $"Hash mismatch for file {actualEntry.Name}");
+            hash.Should().Be(expectedFileEntry.Hash, $"Hash mismatch for file {actualEntry.Name}");
         }
 
-        foundEntry
-            .Should()
-            .BeTrue(
-                "Should find exactly one file in the archive but found none."
-            );
+        foundEntry.Should().BeTrue("Should find exactly one file in the archive but found none.");
     }
 
     private static async Task<string> GetHash(HashAlgorithm hashAlgorithm, Stream input)
     {
-        // Convert the input string to a byte array and compute the hash.
+#if NETCOREAPP3_1_OR_GREATER
+#pragma warning disable AsyncFixer02 // Long-running or blocking operations inside an async method
+        byte[] data = await Task.FromResult(hashAlgorithm.ComputeHash(input)).ConfigureAwait(false);
+#pragma warning restore AsyncFixer02 // Long-running or blocking operations inside an async method
+#else
         byte[] data = await hashAlgorithm.ComputeHashAsync(input).ConfigureAwait(false);
+#endif
+        // Convert the input string to a byte array and compute the hash.
+
 
         // Create a new Stringbuilder to collect the bytes
         // and create a string.
@@ -116,8 +122,11 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         return sBuilder.ToString();
     }
 
-    public Task AssertInvalidHeader(string invalidHeader, string expectedErrorMessage,
-        bool skipMetaDataTest = false)
+    public Task AssertInvalidHeader(
+        string invalidHeader,
+        string expectedErrorMessage,
+        bool skipMetaDataTest = false
+    )
     {
         return AssertInvalidHeader(
             Encoding.ASCII.GetBytes(invalidHeader),
@@ -126,8 +135,11 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         );
     }
 
-    public Task AssertInvalidHeader(int invalidHeaderLength, string expectedErrorMessage,
-        bool skipMetaDataTest = false)
+    public Task AssertInvalidHeader(
+        int invalidHeaderLength,
+        string expectedErrorMessage,
+        bool skipMetaDataTest = false
+    )
     {
         return AssertInvalidHeader(
             new byte[invalidHeaderLength],
@@ -136,19 +148,26 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         );
     }
 
-    public async Task AssertInvalidHeader(byte[] invalidHeader, string expectedErrorMessage,
-        bool skipMetaDataTest = false)
+    public async Task AssertInvalidHeader(
+        byte[] invalidHeader,
+        string expectedErrorMessage,
+        bool skipMetaDataTest = false
+    )
     {
         if (!skipMetaDataTest)
         {
-            await AssertInvalidHeaderGetMetaDataAsync(invalidHeader, expectedErrorMessage).ConfigureAwait(false);
+            await AssertInvalidHeaderGetMetaDataAsync(invalidHeader, expectedErrorMessage)
+                .ConfigureAwait(false);
         }
 
-        await AssertInvalidHeaderGetFileEntriesAsync(invalidHeader, expectedErrorMessage).ConfigureAwait(false);
+        await AssertInvalidHeaderGetFileEntriesAsync(invalidHeader, expectedErrorMessage)
+            .ConfigureAwait(false);
     }
 
-    private static async Task AssertInvalidHeaderGetFileEntriesAsync(byte[] invalidHeader,
-        string expectedErrorMessage)
+    private static async Task AssertInvalidHeaderGetFileEntriesAsync(
+        byte[] invalidHeader,
+        string expectedErrorMessage
+    )
     {
         IArchiveReader reader = new T();
 
@@ -156,20 +175,28 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
 
         var call = async () =>
         {
-            await foreach (var _ in reader.GetFileEntriesAsync(stream, IArchiveReader.MATCH_ALL_FILES)
-                               .ConfigureAwait(false))
+            await foreach (
+                var _ in reader
+                    .GetFileEntriesAsync(stream, IArchiveReader.MATCH_ALL_FILES)
+                    .ConfigureAwait(false)
+            )
             {
-                throw new Exception("This code should not be reached because the header is supposed to be invalid");
+                throw new Exception(
+                    "This code should not be reached because the header is supposed to be invalid"
+                );
             }
         };
 
         var result = await call.Should()
-            .ThrowAsync<Exception>("Should throw because header is invalid").ConfigureAwait(false);
+            .ThrowAsync<Exception>("Should throw because header is invalid")
+            .ConfigureAwait(false);
         result.WithMessage(expectedErrorMessage);
     }
 
-    private static async Task AssertInvalidHeaderGetMetaDataAsync(byte[] invalidHeader,
-        string expectedErrorMessage)
+    private static async Task AssertInvalidHeaderGetMetaDataAsync(
+        byte[] invalidHeader,
+        string expectedErrorMessage
+    )
     {
         IArchiveReader reader = new T();
 
@@ -178,7 +205,8 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         var call = () => reader.GetMetaDataAsync(stream);
 
         var result = await call.Should()
-            .ThrowAsync<Exception>("Should throw because header is invalid").ConfigureAwait(false);
+            .ThrowAsync<Exception>("Should throw because header is invalid")
+            .ConfigureAwait(false);
         result.WithMessage(expectedErrorMessage);
     }
 
@@ -202,9 +230,7 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
     {
         IArchiveReader reader = new T();
 
-        reader.SupportsMetaData
-            .Should()
-            .BeTrue("Should return true because Metadata is supported");
+        reader.SupportsMetaData.Should().BeTrue("Should return true because Metadata is supported");
 
         var actualMetaData = await reader.GetMetaDataAsync(archive).ConfigureAwait(false);
 

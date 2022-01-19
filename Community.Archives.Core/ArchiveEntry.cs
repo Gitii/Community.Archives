@@ -13,7 +13,7 @@ public readonly struct ArchiveEntry : IDisposable, IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        return Content?.DisposeAsync() ?? ValueTask.CompletedTask;
+        return Content?.DisposeAsync() ?? new ValueTask();
     }
 
     public override string ToString()

@@ -165,10 +165,6 @@ public static class RpmVersion
                 {
                     return 1;
                 }
-
-                // throw away any leading zeros - it's a number, right?
-                m1Head = m1Head.TrimStart('0');
-                m2Head = m2Head.TrimStart('0');
             }
             else
             {

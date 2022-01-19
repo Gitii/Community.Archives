@@ -8,10 +8,18 @@ public static class RpmHeaderIndexExtensions
     {
         var indexType = (IndexType)index.type;
 
+#if NETSTANDARD2_1_OR_GREATER
+        if (!Enum.IsDefined(typeof(IndexType), indexType))
+        {
+            throw new Exception($"Invalid index type {index.type}");
+        }
+#else
         if (!Enum.IsDefined<IndexType>(indexType))
         {
             throw new Exception($"Invalid index type {index.type}");
         }
+#endif
+
 
         return indexType;
     }

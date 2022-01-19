@@ -68,12 +68,12 @@ public class ArchiveEntryTests
     }
 
     [Test]
-    public async Task Test_DisposeAsync_NullStream_ShouldBeSkipped()
+    public Task Test_DisposeAsync_NullStream_ShouldBeSkipped()
     {
         var ae = new ArchiveEntry();
 
         var call = async () => await ae.DisposeAsync().ConfigureAwait(false);
 
-        await call.Should().NotThrowAsync();
+        return call.Should().NotThrowAsync();
     }
 }

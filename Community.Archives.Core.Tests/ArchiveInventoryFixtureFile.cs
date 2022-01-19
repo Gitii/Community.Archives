@@ -32,19 +32,19 @@ public class ArchiveInventoryFixtureFile
     {
         string csv = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
 
-        Files = csv.ReplaceLineEndings()
+        Files = csv
             .Split(
-                Environment.NewLine,
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                new string[] { "\n", "\r\n" },
+                StringSplitOptions.RemoveEmptyEntries
             )
             .Select(
                 (line) =>
                 {
-                    var parts = line.Split(
+                    var parts = line.Trim().Split(
                         ';',
-                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+                        StringSplitOptions.RemoveEmptyEntries
                     );
-                    return new FileEntry() { Hash = parts[0], FilePath = $"{pathPrefix}{parts[1]}" };
+                    return new FileEntry() { Hash = parts[0].Trim(), FilePath = $"{pathPrefix}{parts[1].Trim()}" };
                 }
             )
             .ToList();
