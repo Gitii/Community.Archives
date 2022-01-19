@@ -2,14 +2,20 @@
 
 A collection of libraries that support fast and efficient forward-only reading of various popular archives. 
 
+* :rocket: Fast and efficient: Only extracts matched file. Forward-only access. Uses `Task` to offload `IO` to separate threads.
+
+* :grinning: Licensed under MIT. Similar projects are licensed under GPL.
+
+* :heart_eyes: 100% test coverage 
+
 ## Supported archive formats
 
-|      | Package                                                                                        | Documentation                                                                                |
-| ---- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Ar   | [Get `Community.Archives.Ar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)   | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Ar)   |
-| Cpio | [Get `Community.Archives.Cpio` on nuget](https://www.nuget.org/packages/Community.Archives.Ar) | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Cpio) |
-| Rpm  | [Get `Community.Archives.Rpm` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm)  |
-| Tar  | [Get `Community.Archives.Tar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Tar)  |
+| Format | Package                                                                                        | Documentation                                                                                |
+| ------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Ar     | [Get `Community.Archives.Ar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)   | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Ar)   |
+| Cpio   | [Get `Community.Archives.Cpio` on nuget](https://www.nuget.org/packages/Community.Archives.Ar) | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Cpio) |
+| Rpm    | [Get `Community.Archives.Rpm` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm)  |
+| Tar    | [Get `Community.Archives.Tar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Tar)  |
 
 ## Supported frameworks
 
@@ -21,7 +27,7 @@ On any platform that's supported by the above frameworks, including Windows, Lin
 
 ## Getting started
 
-Each package exports an implementation of [`IArchiveReader`]([Community.Archives/IArchiveReader.cs at main · Gitii/Community.Archives · GitHub](https://github.com/Gitii/Community.Archives/blob/main/Community.Archives.Core/IArchiveReader.cs)).
+Each package exports an implementation of [`IArchiveReader`](https://github.com/Gitii/Community.Archives/blob/main/Community.Archives.Core/IArchiveReader.cs).
 
 ## Extract all or specific files
 
@@ -79,6 +85,16 @@ The purpose of  `IArchiveReader` is to quickly and efficiently find and extract 
 
 `IArchiveReader` will only allocate memory (`byte[]`) for matched files. 
 
-# Found a bug?
+# Usage with Dependency Injection
 
-Please [create an issue](https://github.com/Gitii/Community.Archives/issues) and attach the file (if it's not confidental or contains personally identifiable information (PII))
+You can either register `IArchiveReader` and a single implemenation of it. Or, if you are using multiple implementations in the same project, register the implementation directly. All implementations are using `virtual` functions. You can easily mock the classes using your favorite mocking framework.
+
+# Found a bug? Have a suggestion?
+
+Please [create an issue](https://github.com/Gitii/Community.Archives/issues) and attach the file (if it's not confidental or contains personally identifiable information (PII)). 
+
+Pull requests are always welcome :heart_eyes:
+
+## License
+
+This software is released under the [MIT License](https://opensource.org/licenses/MIT). 
