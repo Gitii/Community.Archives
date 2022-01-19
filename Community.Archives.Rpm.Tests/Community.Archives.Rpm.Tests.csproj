@@ -20,7 +20,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Community.Archives.Core.Tests\Community.Archives.Core.Tests.csproj" />
     <ProjectReference Include="..\Community.Archives.Rpm\Community.Archives.Rpm.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\archive.rpm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\archive.rpm.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

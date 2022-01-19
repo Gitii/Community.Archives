@@ -51,8 +51,8 @@ dotnet_style_readonly_field = true:suggestion
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation =true:error
+dotnet_style_coalesce_expression =true:error
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:silent
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
@@ -74,6 +74,8 @@ dotnet_naming_symbols.constant_fields.required_modifiers          = const
 dotnet_diagnostic.WFAC010.severity=error
 dotnet_diagnostic.CA1823.severity=error
 dotnet_diagnostic.CA1836.severity=error
+dotnet_style_namespace_match_folder=true:error
+dotnet_style_allow_multiple_blank_lines_experimental=true:error
 ###############################
 # C# Coding Conventions       #
 ###############################
@@ -98,7 +100,7 @@ csharp_style_conditional_delegate_call = true:suggestion
 # Modifier preferences
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
 # Expression-level preferences
-csharp_prefer_braces = true:silent
+csharp_prefer_braces =true:error
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -168,6 +170,8 @@ dotnet_diagnostic.MA0044.severity=error
 
 # VSTHRD001: Avoid legacy thread switching APIs
 dotnet_diagnostic.VSTHRD001.severity = none
+csharp_style_namespace_declarations=file_scoped:error
+csharp_style_unused_value_assignment_preference=discard_variable:error
 
 [*.vb]
 # Modifier preferences

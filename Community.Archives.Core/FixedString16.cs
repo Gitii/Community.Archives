@@ -27,8 +27,11 @@ public struct FixedString16
         return Encoding.ASCII.GetString(AsByteArray());
     }
 
+    /// <remarks>
+    /// Warning: Only <seealso cref="Data2"/> will be decoded!
+    /// </remarks>
     public long DecodeStringAsLong(bool isHexString = false)
     {
-        return Data1.DecodeStringAsLong(isHexString);
+        return Data2.DecodeStringAsLong(isHexString);
     }
 };

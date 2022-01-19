@@ -1,5 +1,5 @@
 ﻿using System.Buffers.Binary;
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Community.Archives.Core;
@@ -35,12 +35,14 @@ public static class EndiannessExtensions
         return ref obj;
     }
 
+    [ExcludeFromCodeCoverage()]
     private static ByteOrder GetHostSystemEndiness()
     {
         return BitConverter.IsLittleEndian ? ByteOrder.LittleEndian : ByteOrder.BigEndian;
     }
 
-    private static void ConvertByteOrderOnClass<T>(ref T obj, ByteOrder hostSystemEndianness) where T : struct
+    private static void ConvertByteOrderOnClass<T>(ref T obj, ByteOrder hostSystemEndianness)
+        where T : struct
     {
         foreach (var fieldInfo in typeof(T).GetFields())
         {

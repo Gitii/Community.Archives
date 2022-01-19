@@ -8,11 +8,6 @@ public static class HeaderExtensions
 
     public static unsafe bool IsValid(this Header header)
     {
-        if (new IntPtr(header.c_magic) == IntPtr.Zero)
-        {
-            return false;
-        }
-
         for (var i = 0; i < MAGIC.Length; i++)
         {
             if (header.c_magic[i] != MAGIC[i])
@@ -22,5 +17,13 @@ public static class HeaderExtensions
         }
 
         return true;
+    }
+
+    public static FileMode GetFileMode(this Header header)
+    {
+        var mode = header.c_mode.DecodeStringAsLong(true);
+        long type = mode >> 9; // drop permission flags (octal 777)
+
+        return (FileMode)type;
     }
 }

@@ -2,7 +2,7 @@
 
 public interface IArchiveReader
 {
-    public readonly struct ArchiveMetaData
+    public readonly struct ArchiveMetaData : IEquatable<ArchiveMetaData>
     {
         public string Package { get; init; }
         public string Version { get; init; }
@@ -10,6 +10,35 @@ public interface IArchiveReader
         public string Description { get; init; }
 
         public IReadOnlyDictionary<string, string> AllFields { get; init; }
+
+        public override bool Equals(object? obj)
+        {
+            if (Object.ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            if (obj is ArchiveMetaData)
+            {
+                return Equals((ArchiveMetaData)obj);
+            }
+
+            return false;
+        }
+
+        public bool Equals(ArchiveMetaData other)
+        {
+            return Package == other.Package
+                   && Version == other.Version
+                   && Architecture == other.Architecture
+                   && Description == other.Description
+                   && AllFields.AreEqual(other.AllFields);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Package, Version, Architecture, Description, AllFields);
+        }
     }
 
     /// <summary>

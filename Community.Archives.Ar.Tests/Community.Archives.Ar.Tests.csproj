@@ -23,4 +23,19 @@
     <ProjectReference Include="..\Community.Archives.Core.Tests\Community.Archives.Core.Tests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\archive.ar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\archive.ar.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\archive2.ar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\archive2.ar.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

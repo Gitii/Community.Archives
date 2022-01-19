@@ -11,17 +11,20 @@ public static class RpmTagsExtensions
 
         foreach (var fieldInfo in typeof(RpmTags).GetFields())
         {
-            var tagAttr = fieldInfo.GetCustomAttribute<RpmTagAttribute>();
-
-            if (tagAttr == null)
-            {
-                continue;
-            }
+            var tagAttr = fieldInfo.GetCustomAttribute<RpmTagAttribute>()!;
 
             var index = indices.FirstOrNullable((i) => i.tag == tagAttr.TagValue);
 
             if (!index.HasValue)
             {
+                continue;
+            }
+
+            if (tagAttr.Type == IndexType.RPM_I18NSTRING_TYPE)
+            {
+                var strValue = index.Value.GetStrings(data);
+                fieldInfo.SetValueDirect(__makeref(tags), strValue[0]);
+
                 continue;
             }
 

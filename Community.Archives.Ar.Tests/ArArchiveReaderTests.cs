@@ -1,42 +1,66 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Community.Archives.Core;
+using Community.Archives.Core.Tests;
 using NUnit.Framework;
 
-namespace Community.Archives.Ar.Tests
+namespace Community.Archives.Ar.Tests;
+
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Style",
+    "VSTHRD200:Use \"Async\" suffix for async methods",
+    Justification = "<Pending>"
+)]
+public class ArArchiveReaderTests : ArchiveReaderTests<ArArchiveReader>
 {
-    public class ArArchiveReaderTests
+    [Test]
+    public async Task Test_GetMetaDataAsync()
     {
-        [Test]
-        public async Task Test_GetMetaDataAsync()
+        using (var archive = new StreamFixtureFile("Fixtures/archive.ar"))
         {
-            var reader = new ArArchiveReader();
-            var data = await reader
-                .GetMetaDataAsync(
-                    File.OpenRead(
-                        @"C:\Users\Germi\Downloads\firefox_95.0.1+build2-0ubuntu0.20.04.1_amd64.deb"
-                    )
-                )
-                .ConfigureAwait(false);
-        }
-
-        [Test]
-        public async Task Test_GetEntriesAsync()
-        {
-            var reader = new ArArchiveReader();
-            var stream = File.OpenRead(
-                @"C:\Users\Germi\Downloads\firefox_95.0.1+build2-0ubuntu0.20.04.1_amd64.deb"
+            await AssertMetaDataSupported(
+                archive.Content,
+                new IArchiveReader.ArchiveMetaData()
+                {
+                    Package = String.Empty,
+                    Version = String.Empty,
+                    Architecture = string.Empty,
+                    Description = string.Empty,
+                    AllFields = new Dictionary<string, string>(StringComparer.Ordinal),
+                }
             );
-
-            await foreach (
-                var entry in reader
-                    .GetFileEntriesAsync(stream, IArchiveReader.MATCH_ALL_FILES)
-                    .ConfigureAwait(false)
-            )
-            {
-                Debugger.Break();
-            }
         }
+    }
+
+    [Test]
+    [TestCase("Fixtures/archive.ar", "Fixtures/archive.ar.csv")]
+    [TestCase("Fixtures/archive2.ar", "Fixtures/archive2.ar.csv")]
+    public async Task Test_GetEntriesAsync_ShouldExtractAllFiles(
+        string archivePath,
+        string inventoryPath
+    )
+    {
+        using (var archive = new StreamFixtureFile(archivePath))
+        {
+            var inventory = new ArchiveInventoryFixtureFile(inventoryPath);
+            await AssertAllFilesAreExtracted(archive.Content, inventory);
+        }
+    }
+
+    [Test]
+    public async Task Test_GetEntriesAsync_ShouldExtractFirstFile()
+    {
+        using (var archive = new StreamFixtureFile("Fixtures/archive.ar"))
+        {
+            var inventory = new ArchiveInventoryFixtureFile("Fixtures/archive.ar.csv");
+            await AssertFirstFileIsExtracted(archive.Content, inventory, "large.bin");
+        }
+    }
+
+    [Test]
+    public Task Test_GetEntriesAsync_InvalidHeader()
+    {
+        return AssertInvalidHeader("foobar!!!!!!!!", "The stream is not a valid ar archive!");
     }
 }

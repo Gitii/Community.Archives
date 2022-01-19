@@ -43,6 +43,18 @@ case "$ARCHIVE_PATH" in
     tar -zxf "$ARCHIVE_PATH" --directory "$TEMP_ARCHIVE_PATH"
     ;;
 
+  *.rpm)
+    pushd "$TEMP_ARCHIVE_PATH"
+        rpm2cpio "$ARCHIVE_PATH" | cpio -ivd --no-absolute-filenames 
+    popd
+    ;;
+
+  *.ar)
+    pushd "$TEMP_ARCHIVE_PATH"
+        ar x "$ARCHIVE_PATH"
+    popd
+    ;;
+
   *)
     echo -n "Unsupported archive type ${ARCHIVE_PATH#*.}."
     exit 1

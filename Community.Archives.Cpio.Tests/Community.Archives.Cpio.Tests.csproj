@@ -18,7 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Community.Archives.Core.Tests\Community.Archives.Core.Tests.csproj" />
     <ProjectReference Include="..\Community.Archives.Cpio\Community.Archives.Cpio.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\archive.cpio">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\archive.cpio.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

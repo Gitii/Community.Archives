@@ -12,11 +12,6 @@ public static class RpmLeadHelpers
 
     public static unsafe bool IsValid(this RpmLead lead)
     {
-        if (new IntPtr(lead.magic) == IntPtr.Zero)
-        {
-            return false;
-        }
-
         for (var i = 0; i < MAGIC_RPM_LEAD_SIZE; i++)
         {
             if (lead.magic[i] != MAGIC_RPM_LEAD[i])
@@ -30,11 +25,6 @@ public static class RpmLeadHelpers
 
     public static unsafe string GetName(this RpmLead lead)
     {
-        if (new IntPtr(lead.name) == IntPtr.Zero)
-        {
-            throw new Exception("Invalid struct");
-        }
-
         return Marshal.PtrToStringAnsi((IntPtr)lead.name, NAME_SIZE).TrimEnd('\0');
     }
 }

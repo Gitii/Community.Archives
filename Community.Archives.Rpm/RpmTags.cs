@@ -36,70 +36,70 @@ public struct RpmTags
     //public byte SignatureTagGpg;
 
     [RpmTag(1000, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string Name;
+    public string Name = String.Empty;
 
     [RpmTag(1001, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string Version;
+    public string Version = String.Empty;
 
     [RpmTag(1002, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string Release;
+    public string Release = String.Empty;
 
     [RpmTag(1004, IndexType.RPM_I18NSTRING_TYPE, 1, true)]
-    public string Summary;
+    public string Summary = String.Empty;
 
     [RpmTag(1005, IndexType.RPM_I18NSTRING_TYPE, 1, true)]
-    public string Description;
+    public string Description = String.Empty;
 
     [RpmTag(1009, IndexType.RPM_INT32_TYPE, 1, true)]
     public int Size;
 
     [RpmTag(1010, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Distribution;
+    public string Distribution = String.Empty;
 
     [RpmTag(1011, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Vendor;
+    public string Vendor = String.Empty;
 
     [RpmTag(1014, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string License;
+    public string License = String.Empty;
 
     [RpmTag(1015, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Packager;
+    public string Packager = String.Empty;
 
     [RpmTag(1016, IndexType.RPM_I18NSTRING_TYPE, 1, true)]
-    public string Group;
+    public string Group = String.Empty;
 
     [RpmTag(1020, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Url;
+    public string Url = String.Empty;
 
     [RpmTag(1021, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Os;
+    public string Os = String.Empty;
 
     [RpmTag(1022, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string Architecture;
+    public string Architecture = String.Empty;
 
     [RpmTag(1044, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string SourceRpm;
+    public string SourceRpm = String.Empty;
 
     [RpmTag(1046, IndexType.RPM_INT32_TYPE, 1, false)]
     public int ArchiveSize;
 
     [RpmTag(1064, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string RpmVersion;
+    public string RpmVersion = String.Empty;
 
     [RpmTag(1094, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string Cookie;
+    public string Cookie = String.Empty;
 
     [RpmTag(1123, IndexType.RPM_STRING_TYPE, 1, false)]
-    public string DistUrl;
+    public string DistUrl = String.Empty;
 
     [RpmTag(1124, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string PayloadFormat;
+    public string PayloadFormat = String.Empty;
 
     [RpmTag(1125, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string PayloadCompressor;
+    public string PayloadCompressor = String.Empty;
 
     [RpmTag(1126, IndexType.RPM_STRING_TYPE, 1, true)]
-    public string PayloadFlags;
+    public string PayloadFlags = String.Empty;
 
     public IReadOnlyDictionary<string, string> GetFields()
     {
@@ -109,9 +109,9 @@ public struct RpmTags
         foreach (var fieldInfo in GetType().GetFields())
         {
             var value = fieldInfo.GetValueDirect(thisRef);
-            if (value != null)
+            if (value != null && !ReferenceEquals(value, string.Empty))
             {
-                fieldDict.Add(fieldInfo.Name, value.ToString() ?? string.Empty);
+                fieldDict.Add(fieldInfo.Name, value.ToString()!);
             }
         }
 

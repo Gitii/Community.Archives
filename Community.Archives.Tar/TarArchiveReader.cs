@@ -12,7 +12,7 @@ public class TarArchiveReader : IArchiveReader
 {
     private const int BLOCK_SIZE = 512;
 
-    public async IAsyncEnumerable<ArchiveEntry> GetFileEntriesAsync(
+    public virtual async IAsyncEnumerable<ArchiveEntry> GetFileEntriesAsync(
         Stream stream,
         params string[] regexMatcher
     )
@@ -94,10 +94,10 @@ public class TarArchiveReader : IArchiveReader
         return Task.FromResult<Stream>(rewindableStream);
     }
 
-    public Task<IArchiveReader.ArchiveMetaData> GetMetaDataAsync(Stream stream)
+    public virtual Task<IArchiveReader.ArchiveMetaData> GetMetaDataAsync(Stream stream)
     {
         throw new NotSupportedException("Tar archives do not have an header.");
     }
 
-    public bool SupportsMetaData { get; } = false;
+    public virtual bool SupportsMetaData { get; } = false;
 }

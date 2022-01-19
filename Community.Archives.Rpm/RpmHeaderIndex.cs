@@ -11,4 +11,9 @@ public struct RpmHeaderIndex
     public int type;
     public int offset;
     public int count;
+
+    public override string ToString()
+    {
+        return $"Tag = {tag}; Type = {type}; Offset = {offset}; Count = {count}";
+    }
 };

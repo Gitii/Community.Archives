@@ -13,11 +13,11 @@ namespace Community.Archives.Ar;
 public class ArArchiveReader : IArchiveReader
 {
     /// <summary>
-    /// Enumerate the FileEntries in the given archivev asynchronously
+    /// Enumerate the FileEntries in the given archive asynchronously
     /// </summary>
     /// <param name="stream">The archive file stream</param>
     /// <returns>The ArchiveEntry found</returns>
-    public async IAsyncEnumerable<ArchiveEntry> GetFileEntriesAsync(
+    public virtual async IAsyncEnumerable<ArchiveEntry> GetFileEntriesAsync(
         Stream stream,
         params string[] regexMatcher
     )
@@ -34,20 +34,36 @@ public class ArArchiveReader : IArchiveReader
 
         var size = Marshal.SizeOf<FileEntry>();
 
+        ArchiveStringTable ast = new ArchiveStringTable();
+
         while (stream.Length - stream.Position >= size)
         {
             var fileEntry = await stream.ReadStructAsync<FileEntry>().ConfigureAwait(false);
 
             var filename = fileEntry.FileIdentifier.AsString().TrimEnd();
+            if (!filename.StartsWith('/') && filename.EndsWith('/'))
+            {
+                filename = filename.TrimEnd('/'); // trim / if SVR4/GNU variant & regular file
+            }
+
+            filename = ast.Dereference(filename);
+
             var fileSize = fileEntry.FileSize.DecodeStringAsLong();
 
-            if (regexes.IsMatch(filename))
+            if (filename == "//")
+            {
+                // This file is a "Archive String Table"
+                // see https://www.freebsd.org/cgi/man.cgi?query=ar&sektion=5
+                var astData = await stream.ReadBlockAsync(fileSize).ConfigureAwait(false);
+
+                ast.Load(astData);
+            }
+            else if (regexes.IsMatch(filename))
             {
                 // match: read bytes
                 yield return new ArchiveEntry()
                 {
-                    Content = await stream.ReadStreamAsync(fileSize).ConfigureAwait(false),
-                    Name = filename,
+                    Content = await stream.ReadStreamAsync(fileSize).ConfigureAwait(false), Name = filename,
                 };
             }
             else
@@ -58,7 +74,7 @@ public class ArArchiveReader : IArchiveReader
         }
     }
 
-    public async Task<IArchiveReader.ArchiveMetaData> GetMetaDataAsync(Stream stream)
+    public virtual async Task<IArchiveReader.ArchiveMetaData> GetMetaDataAsync(Stream stream)
     {
         var header = await stream.ReadStructAsync<Header>().ConfigureAwait(false);
         if (!header.IsValid())
@@ -68,13 +84,13 @@ public class ArArchiveReader : IArchiveReader
 
         return new IArchiveReader.ArchiveMetaData()
         {
-            Package = header.FileIdentifier.AsString().TrimEnd(),
-            Version = header.Version.AsString().TrimEnd(),
+            Package = String.Empty,
+            Version = String.Empty,
             Architecture = string.Empty,
             Description = string.Empty,
-            AllFields = new Dictionary<string, string>(StringComparer.InvariantCulture),
+            AllFields = new Dictionary<string, string>(StringComparer.Ordinal),
         };
     }
 
-    public bool SupportsMetaData { get; } = true;
+    public virtual bool SupportsMetaData { get; } = true;
 }
