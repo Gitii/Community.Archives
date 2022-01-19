@@ -3,9 +3,7 @@
 A collection of libraries that support fast and efficient forward-only reading of various popular archives. 
 
 * :rocket: Fast and efficient: Only extracts matched file. Forward-only access. Uses `Task` to offload `IO` to separate threads.
-
 * :grinning: Licensed under MIT. Similar projects are licensed under GPL.
-
 * :heart_eyes: 100% test coverage 
 
 ## Supported archive formats
