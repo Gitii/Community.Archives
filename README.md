@@ -11,9 +11,9 @@ A collection of libraries that support fast and efficient forward-only reading o
 | Format | Package                                                                                        | Documentation                                                                                |
 | ------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Ar     | [Get `Community.Archives.Ar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)   | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Ar)   |
-| Cpio   | [Get `Community.Archives.Cpio` on nuget](https://www.nuget.org/packages/Community.Archives.Ar) | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Cpio) |
-| Rpm    | [Get `Community.Archives.Rpm` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm)  |
-| Tar    | [Get `Community.Archives.Tar` on nuget](https://www.nuget.org/packages/Community.Archives.Ar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Tar)  |
+| Cpio   | [Get `Community.Archives.Cpio` on nuget](https://www.nuget.org/packages/Community.Archives.Cpio) | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Cpio) |
+| Rpm    | [Get `Community.Archives.Rpm` on nuget](https://www.nuget.org/packages/Community.Archives.Rpm)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm)  |
+| Tar    | [Get `Community.Archives.Tar` on nuget](https://www.nuget.org/packages/Community.Archives.Tar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Tar)  |
 
 ## Supported frameworks
 
