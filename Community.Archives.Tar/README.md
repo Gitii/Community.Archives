@@ -24,6 +24,8 @@ On any platform that's supported by the above frameworks, including Windows, Lin
 
 * `Tar` files do not have metadata. `GetMetaDataAsync` will throw an exception at runtime.
 
+* Compressed `Tar` archives are supported: `gzip`, `bzip`, `xz` and `lz` are detected and decompressed on the fly.
+
 ## Getting started
 
 ### Extract all or specific files
