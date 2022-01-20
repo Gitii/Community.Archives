@@ -132,6 +132,38 @@ public class TrackingStreamTests
     }
 
     [Test]
+    [TestCase(true)]
+    [TestCase(false)]
+    public void Test_CanRead(bool canRead)
+    {
+        var stream = A.Fake<Stream>();
+
+        var callToCanRead = () => A.CallTo(() => stream.CanRead);
+        callToCanRead().Returns(canRead);
+
+        var trackingStream = new TrackingStream(stream);
+        trackingStream.CanRead.Should().Be(canRead);
+
+        callToCanRead().MustHaveHappened();
+    }
+
+    [Test]
+    [TestCase(true)]
+    [TestCase(false)]
+    public void Test_CanSeek(bool canSeek)
+    {
+        var stream = A.Fake<Stream>();
+
+        var callToCanSeek = () => A.CallTo(() => stream.CanSeek);
+        callToCanSeek().Returns(canSeek);
+
+        var trackingStream = new TrackingStream(stream);
+        trackingStream.CanSeek.Should().Be(canSeek);
+
+        callToCanSeek().MustHaveHappened();
+    }
+
+    [Test]
     [TestCase(0)]
     [TestCase(-100)]
     [TestCase(100)]

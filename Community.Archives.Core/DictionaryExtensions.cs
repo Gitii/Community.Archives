@@ -56,14 +56,17 @@ public static class DictionaryExtensions
 
             if (leftValue == null && rightValue == null)
             {
-                return true;
+                continue;
             }
             else if (leftValue == null || rightValue == null)
             {
                 return false;
             }
 
-            return cmp.Equals(leftValue, rightValue);
+            if (!cmp.Equals(leftValue, rightValue))
+            {
+                return false;
+            }
         }
 
         return true;

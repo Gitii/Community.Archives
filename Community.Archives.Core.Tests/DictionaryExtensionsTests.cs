@@ -21,6 +21,11 @@ public class DictionaryExtensionsTests
         },
         new object?[]
         {
+            new Dictionary<bool, bool?>() { { true, true } }, new Dictionary<bool, bool?>() { { true, false } },
+            false
+        },
+        new object?[]
+        {
             new Dictionary<bool, bool?>() { { true, null } }, new Dictionary<bool, bool?>() { { true, null } },
             true
         },

@@ -72,6 +72,8 @@ public class FixedString12Tests
     }
 
     [Test]
+    [TestCase("00000000000\0", 0)]
+    [TestCase("000000000000", 0)]
     [TestCase("000000000001", 1)]
     [TestCase("112402762000", 10000000000)]
     [TestCase("133767016065", 12345678901)]
