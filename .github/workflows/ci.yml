@@ -24,7 +24,7 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build
     - name: Generate coverage
-      run: generate-coverage.cmd
+      run: .\generate-coverage.cmd
     - name: Code Coverage Summary Report
       uses: irongut/CodeCoverageSummary@v1.2.0
       with:
@@ -36,7 +36,7 @@ jobs:
         hide_complexity: true
         indicators: true
         output: both
-        thresholds: '60 80'
+        thresholds: '100 100'
 
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
