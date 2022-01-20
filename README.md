@@ -17,7 +17,7 @@ A collection of libraries that support fast and efficient forward-only reading o
 
 ## Supported frameworks
 
-- .NET Standard 2.1
+- .Net Standard 2.1
 - .Net 5
 - .Net 6
 
