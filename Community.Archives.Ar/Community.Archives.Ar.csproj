@@ -5,6 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Authors>Gitii</Authors>
+    <Description>A fast and efficient forward-only reader for `Ar` archives.</Description>
+    <IsPackable>true</IsPackable>
+    <PackageProjectUrl>https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Ar</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Gitii/Community.Archives</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ar</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +28,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Community.Archives.Core\Community.Archives.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

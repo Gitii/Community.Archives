@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		generate-coverage-report.cmd = generate-coverage-report.cmd
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
+		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Community.Archives.Cpio", "Community.Archives.Cpio\Community.Archives.Cpio.csproj", "{9F95660A-45A5-4E6A-9C7B-1DAD0EB83FB7}"
