@@ -5,6 +5,18 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Authors>Gitii</Authors>
+        <Description>A fast and efficient forward-only reader for `Rpm` archives.</Description>
+        <IsPackable>true</IsPackable>
+        <PackageProjectUrl>https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/Gitii/Community.Archives</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>rpm</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <EnableNETAnalyzers>True</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +29,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Community.Archives.Core\Community.Archives.Core.csproj" />
         <ProjectReference Include="..\Community.Archives.Cpio\Community.Archives.Cpio.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
