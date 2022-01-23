@@ -3,7 +3,7 @@ using Community.Archives.Core;
 
 namespace Community.Archives.Rpm;
 
-public static class RpmTagsExtensions
+internal static class RpmTagsExtensions
 {
     public static RpmTags Parse(RpmHeaderIndex[] indices, byte[] data)
     {

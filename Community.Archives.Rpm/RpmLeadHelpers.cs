@@ -2,7 +2,7 @@
 
 namespace Community.Archives.Rpm;
 
-public static class RpmLeadHelpers
+internal static class RpmLeadHelpers
 {
     public static readonly byte[] MAGIC_RPM_LEAD = { 0xed, 0xab, 0xee, 0xdb };
 

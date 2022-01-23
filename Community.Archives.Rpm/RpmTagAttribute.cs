@@ -1,7 +1,7 @@
 ﻿namespace Community.Archives.Rpm;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public class RpmTagAttribute : Attribute
+internal class RpmTagAttribute : Attribute
 {
     public RpmTagAttribute(int tagValue, IndexType type, int count, bool isRequired)
     {

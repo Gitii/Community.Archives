@@ -5,7 +5,7 @@ namespace Community.Archives.Rpm;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 [Endianness(ByteOrder.BigEndian)]
-public struct RpmHeaderIndex
+internal struct RpmHeaderIndex
 {
     public int tag;
     public int type;

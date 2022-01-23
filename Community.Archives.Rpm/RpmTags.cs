@@ -1,6 +1,6 @@
 ﻿namespace Community.Archives.Rpm;
 
-public struct RpmTags
+internal struct RpmTags
 {
     //[RpmTag(62, IndexType.RPM_BIN_TYPE, 16, false)]
     //public byte[] HeaderSignatures;
