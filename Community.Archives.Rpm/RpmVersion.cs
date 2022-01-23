@@ -18,6 +18,9 @@ using System.Text.RegularExpressions;
 
 namespace Community.Archives.Rpm;
 
+/// <summary>
+/// /
+/// </summary>
 public static class RpmVersion
 {
     private static Regex FindNonAlphaNumericPrefix = new Regex(
@@ -38,22 +41,30 @@ public static class RpmVersion
         TimeSpan.FromSeconds(1)
     );
 
+    /// <summary>
+    /// Compares two rpm version string.
+    /// </summary>
+    /// <returns>
+    /// <c>0</c> when both are identical,
+    /// <c>-1</c> if <paramref name="left"/> is lower than <paramref name="right"/> or
+    /// <c>+1</c> if <paramref name="left"/> is greater than <paramref name="right"/>.
+    /// </returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Design",
         "MA0051:Method is too long",
         Justification = "Ported from python"
     )]
-    public static int Compare(string first, string second)
+    public static int Compare(string left, string right)
     {
         bool isnum;
-        while (!string.IsNullOrEmpty(first) || !string.IsNullOrEmpty(second))
+        while (!string.IsNullOrEmpty(left) || !string.IsNullOrEmpty(right))
         {
-            var m1 = FindNonAlphaNumericPrefix.Match(first);
-            var m2 = FindNonAlphaNumericPrefix.Match(second);
+            var m1 = FindNonAlphaNumericPrefix.Match(left);
+            var m2 = FindNonAlphaNumericPrefix.Match(right);
             var m1Head = m1.Groups[1].Value;
-            first = m1.Groups[2].Value; // tail
+            left = m1.Groups[2].Value; // tail
             var m2Head = m2.Groups[1].Value;
-            second = m2.Groups[2].Value; // tail
+            right = m2.Groups[2].Value; // tail
             if (!string.IsNullOrEmpty(m1Head) || !string.IsNullOrEmpty(m2Head))
             {
                 // Ignore junk at the beginning
@@ -61,49 +72,49 @@ public static class RpmVersion
             }
 
             // handle the tilde separator, it sorts before everything else
-            if (first.StartsWith('~'))
+            if (left.StartsWith('~'))
             {
-                if (!second.StartsWith('~'))
+                if (!right.StartsWith('~'))
                 {
                     return -1;
                 }
 
-                first = first.Substring(1);
-                second = second.Substring(1);
+                left = left.Substring(1);
+                right = right.Substring(1);
                 continue;
             }
 
-            if (second.StartsWith('~'))
+            if (right.StartsWith('~'))
             {
                 return 1;
             }
 
             // Now look at the caret, which is like the tilde but pointier.
-            if (first.StartsWith('^'))
+            if (left.StartsWith('^'))
             {
                 // first has a caret but second has ended
-                if (string.IsNullOrEmpty(second))
+                if (string.IsNullOrEmpty(right))
                 {
                     return 1; // first > second
                 }
 
                 // first has a caret but second continues on
-                if (!second.StartsWith('^'))
+                if (!right.StartsWith('^'))
                 {
                     return -1; // first < second
                 }
 
                 // strip the ^ and start again
-                first = first.Substring(1);
-                second = second.Substring(1);
+                left = left.Substring(1);
+                right = right.Substring(1);
                 continue;
             }
 
             // Caret means the version is less... Unless the other version
             // has ended, then do the exact opposite.
-            if (second.StartsWith('^'))
+            if (right.StartsWith('^'))
             {
-                if (string.IsNullOrEmpty(first))
+                if (string.IsNullOrEmpty(left))
                 {
                     return -1;
                 }
@@ -115,16 +126,16 @@ public static class RpmVersion
             // Note: we have to do this after we compare the ~ and ^ madness
             // because ~'s and ^'s take precedance.
             // If we ran to the end of either, we are finished with the loop
-            if (string.IsNullOrEmpty(first) || string.IsNullOrEmpty(second))
+            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
             {
                 break;
             }
 
             // grab first completely alpha or completely numeric segment
-            m1 = IsNumeric.Match(first);
+            m1 = IsNumeric.Match(left);
             if (m1.Success)
             {
-                m2 = IsNumeric.Match(second);
+                m2 = IsNumeric.Match(right);
                 if (!m2.Success)
                 {
                     // numeric segments are always newer than alpha segments
@@ -135,8 +146,8 @@ public static class RpmVersion
             }
             else
             {
-                m1 = IsAlpha.Match(first);
-                m2 = IsAlpha.Match(second);
+                m1 = IsAlpha.Match(left);
+                m2 = IsAlpha.Match(right);
                 if (!m2.Success)
                 {
                     return -1;
@@ -146,9 +157,9 @@ public static class RpmVersion
             }
 
             m1Head = m1.Groups[1].Value;
-            first = m1.Groups[2].Value; // tail
+            left = m1.Groups[2].Value; // tail
             m2Head = m2.Groups[1].Value;
-            second = m2.Groups[2].Value; // tail
+            right = m2.Groups[2].Value; // tail
             if (isnum)
             {
                 var m1Num = Int32.Parse(m1Head, CultureInfo.InvariantCulture);
@@ -184,12 +195,12 @@ public static class RpmVersion
             // continue with next segment
         }
 
-        if (first.Length == 0 && second.Length == 0)
+        if (left.Length == 0 && right.Length == 0)
         {
             return 0;
         }
 
-        if (first.Length != 0)
+        if (left.Length != 0)
         {
             return 1;
         }
