@@ -65,3 +65,51 @@ var metaData = await reader.GetMetaDataAsync(stream);
 Console.WriteLine(metaData.Package); // for example: "gh"
 Console.WriteLine(metaData.Version); // for example: "2.4.0"
 ```
+
+# Rpm package file name parser
+
+The rpm package file name follows a specific naming convention: `<name>-<version>-<release>-<arch>`.
+
+The class `RpmPackageNameParser` is able to split this string in it's components:
+
+```csharp
+var reader = new RpmPackageNameParser();
+
+// parse it
+if (reader.TryParse("mypackage-1.2-1", out var name)) {
+    Console.WriteLine(name.Name); // mypackage
+    Console.WriteLine(name.Version); // 1.2
+    Console.WriteLine(name.Release); // 1
+    Console.WriteLine(name.Architecture); // <null>, arch is optional.
+}
+
+// only validate it
+reader.IsValid("mypackage-1.2-1") // true
+reader.IsValid("mypackage-1.2-1-x86") // true
+reader.IsValid("mypackage") // false
+```
+
+# Rpm package version comparison
+
+Version strings in rpm packages follow a strict naming convention but it's not simple to understand & compare.
+
+The class `RpmVersion` has a `Compare` function that does the heavy lifting.
+
+It returns either 
+
+* `0` (same version)
+
+* `+1` (left version is greater than right version)
+
+* `-1` (left version is lower than right version)
+
+Examples:
+
+```csharp
+RpmVersion.Compare("1.0", "1.0") // 0  -> 1.0 == 1.0
+RpmVersion.Compare("1.0", "2.0") // -1 -> 1.0 <  2.0
+RpmVersion.Compare("2.0", "1.0") // +1 -> 2.0 >  1.0
+// and now some of the fun ones
+RpmVersion.Compare("1.0^20160102", "1.0^20160101^git1") // +1
+RpmVersion.Compare("1.0^git1", "1.0^git1~pre") // +1
+```
