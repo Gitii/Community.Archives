@@ -1,6 +1,6 @@
 ﻿namespace Community.Archives.Rpm;
 
-public enum IndexType : int
+internal enum IndexType : int
 {
     RPM_NULL_TYPE = 0,
     RPM_CHAR_TYPE = 1,

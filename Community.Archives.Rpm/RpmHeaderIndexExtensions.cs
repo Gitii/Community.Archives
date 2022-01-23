@@ -2,7 +2,7 @@
 
 namespace Community.Archives.Rpm;
 
-public static class RpmHeaderIndexExtensions
+internal static class RpmHeaderIndexExtensions
 {
     public static IndexType GetIndexType(this in RpmHeaderIndex index)
     {

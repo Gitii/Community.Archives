@@ -5,7 +5,7 @@ namespace Community.Archives.Rpm;
 
 [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 [Endianness(ByteOrder.BigEndian)]
-public unsafe struct RpmLead
+internal unsafe struct RpmLead
 {
     public fixed byte magic[RpmLeadHelpers.MAGIC_RPM_LEAD_SIZE];
     public byte major;

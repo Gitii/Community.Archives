@@ -5,7 +5,7 @@ namespace Community.Archives.Rpm;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 [Endianness(ByteOrder.BigEndian)]
-public unsafe struct RpmHeader
+internal unsafe struct RpmHeader
 {
     public fixed byte magic[4];
     public fixed byte reserved[4];
