@@ -12,7 +12,7 @@ internal struct PackageHeader
     public short headerSize;
     public int size;
     public int id;
-    public unsafe fixed char name[256];
+    public unsafe fixed byte name[256];
     public int typeStrings;
     public int lastPublicType;
     public int keyStrings;

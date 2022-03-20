@@ -424,10 +424,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                                + resource_id.ToString("X4")
-                                + ", key: "
-                                + keyStringPool[entry_key]
-                                + ", complex value, not printed."
+                            + resource_id.ToString("X4")
+                            + ", key: "
+                            + keyStringPool[entry_key]
+                            + ", complex value, not printed."
                         );
                     }
                 }
