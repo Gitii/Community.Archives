@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Text;
 using Community.Archives.Core;
 
@@ -133,7 +134,7 @@ public class ApkResourceFinder
                     buffer = binaryReader.ReadBytes(s);
                     //br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                    valueStringPool = ExtractStringPool(buffer);
+                    valueStringPool = await ExtractStringPoolAsync(buffer).ConfigureAwait(false);
                 }
 
                 actualStringPoolCount++;
@@ -192,7 +193,7 @@ public class ApkResourceFinder
                 );
                 br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                typeStringPool = ExtractStringPool(bbTypeStrings);
+                typeStringPool = await ExtractStringPoolAsync(bbTypeStrings).ConfigureAwait(false);
 
                 Debug.WriteLine("Key strings:");
 
@@ -208,7 +209,7 @@ public class ApkResourceFinder
                 );
                 br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                keyStringPool = ExtractStringPool(bbKeyStrings);
+                keyStringPool = await ExtractStringPoolAsync(bbKeyStrings).ConfigureAwait(false);
 
                 // Iterate through all chunks
                 //
@@ -456,84 +457,102 @@ public class ApkResourceFinder
         }
     }
 
-    private string[] ExtractStringPool(byte[] data)
+    private async Task<string[]> ExtractStringPoolAsync(byte[] data)
     {
         long lastPosition = 0;
 
-        using (MemoryStream ms = new MemoryStream(data))
+        MemoryStream ms = new MemoryStream(data);
+        await using var _ = ms.ConfigureAwait(false);
+
+        var header = await ms.ReadStructAsync<StringPoolHeader>().ConfigureAwait(false);
+
+        bool isUtf8String = (header.flags & 256) != 0;
+
+        var offsets = await ms.ReadBlockAsync<int>(header.stringCount).ConfigureAwait(false);
+
+        string[] strings = new string[header.stringCount];
+
+        for (int i = 0; i < header.stringCount; i++)
         {
-            using (BinaryReader br = new BinaryReader(ms))
+            int pos = header.stringsStart + offsets[i];
+            await ms.SkipAsync(pos - ms.Position).ConfigureAwait(false);
+
+            strings[i] = await ReadStringAsync(isUtf8String, ms).ConfigureAwait(false);
+
+            Debug.WriteLine("Parsed value: {0}", strings[i]);
+        }
+
+        return strings;
+    }
+
+    private static async Task<string> ReadStringAsync(bool isUtf8String, MemoryStream ms)
+    {
+        string newString = String.Empty;
+        if (isUtf8String)
+        {
+            var lengthOfUtf8String = ReadUtf8StringLength(ms);
+
+            if (lengthOfUtf8String > 0)
             {
-                short type = br.Readt16();
-                short headerSize = br.Readt16();
-                int size = br.Readt32();
-                int stringCount = br.Readt32();
-                int styleCount = br.Readt32();
-                int flags = br.Readt32();
-                int stringsStart = br.Readt32();
-                int stylesStart = br.Readt32();
-
-                bool isUTF_8 = (flags & 256) != 0;
-
-                int[] offsets = new int[stringCount];
-                for (int i = 0; i < stringCount; ++i)
-                {
-                    offsets[i] = br.Readt32();
-                }
-
-                string[] strings = new string[stringCount];
-
-                for (int i = 0; i < stringCount; i++)
-                {
-                    int pos = stringsStart + offsets[i];
-                    br.BaseStream.Seek(pos, SeekOrigin.Begin);
-                    strings[i] = "";
-                    if (isUTF_8)
-                    {
-                        int u16len = br.ReadByte(); // u16len
-                        if ((u16len & 0x80) != 0)
-                        {
-                            // larger than 128
-                            u16len = ((u16len & 0x7F) << 8) + br.ReadByte();
-                        }
-
-                        int u8len = br.ReadByte(); // u8len
-                        if ((u8len & 0x80) != 0)
-                        {
-                            // larger than 128
-                            u8len = ((u8len & 0x7F) << 8) + br.ReadByte();
-                        }
-
-                        if (u8len > 0)
-                        {
-                            strings[i] = Encoding.UTF8.GetString(br.ReadBytes(u8len));
-                        }
-                        else
-                        {
-                            strings[i] = "";
-                        }
-                    }
-                    else // UTF_16
-                    {
-                        int u16len = br.ReadUInt16();
-                        if ((u16len & 0x8000) != 0)
-                        {
-                            // larger than 32768
-                            u16len = ((u16len & 0x7FFF) << 16) + br.ReadUInt16();
-                        }
-
-                        if (u16len > 0)
-                        {
-                            strings[i] = Encoding.Unicode.GetString(br.ReadBytes(u16len * 2));
-                        }
-                    }
-
-                    Debug.WriteLine("Parsed value: {0}", strings[i]);
-                }
-
-                return strings;
+                var utf8Data = await ms.ReadBlockAsync(lengthOfUtf8String).ConfigureAwait(false);
+                newString = Encoding.UTF8.GetString(utf8Data);
             }
         }
+        else // UTF_16
+        {
+            var lengthOfUtf16String = ReadUtf816StringLength(ms);
+
+            if (lengthOfUtf16String > 0)
+            {
+                var utf16Data = await ms.ReadBlockAsync(lengthOfUtf16String * 2).ConfigureAwait(false);
+                newString = Encoding.Unicode.GetString(utf16Data);
+            }
+        }
+
+        return newString;
+    }
+
+    private static int ReadUtf816StringLength(MemoryStream ms)
+    {
+        int u16len = ReadUInt16();
+        if ((u16len & 0x8000) != 0)
+        {
+            // larger than 32768
+            u16len = ((u16len & 0x7FFF) << 16) + ReadUInt16();
+        }
+
+        return u16len;
+
+        ushort ReadUInt16()
+        {
+            var ushortData = new byte[2];
+            var bytesRead = ms.Read(ushortData, 0, 2);
+            if (bytesRead != 2)
+            {
+                throw new Exception("Failed to read ushort from stream");
+            }
+
+            return BinaryPrimitives.ReadUInt16LittleEndian(ushortData);
+        }
+    }
+
+    private static int ReadUtf8StringLength(MemoryStream ms)
+    {
+        int u16len = ms.ReadByte(); // u16len
+        if ((u16len & 0x80) != 0)
+        {
+            // larger than 128
+            u16len = ((u16len & 0x7F) << 8) + ms.ReadByte();
+        }
+
+        int u8len = ms.ReadByte(); // u8len
+        if ((u8len & 0x80) != 0)
+        {
+            // larger than 128
+            u8len = ((u8len & 0x7F) << 8) + ms.ReadByte();
+        }
+
+        return u8len;
     }
 
     private void ExtractTypeSpec(byte[] data)
