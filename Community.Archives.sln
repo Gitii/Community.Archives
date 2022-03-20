@@ -39,6 +39,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Community.Archives.Cpio", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Community.Archives.Core.Tests", "Community.Archives.Core.Tests\Community.Archives.Core.Tests.csproj", "{3C6D79B6-7BCC-463A-B978-C0AF8F7B5074}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Community.Archives.Apk", "Community.Archives.Apk\Community.Archives.Apk.csproj", "{F7F0180A-3B79-46BC-B1ED-B838E1143742}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Community.Archives.Apk.Tests", "Community.Archives.Apk.Tests\Community.Archives.Apk.Tests.csproj", "{AAE9A360-3CAF-4679-9C4B-A2699EB56A2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +89,14 @@ Global
 		{3C6D79B6-7BCC-463A-B978-C0AF8F7B5074}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C6D79B6-7BCC-463A-B978-C0AF8F7B5074}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C6D79B6-7BCC-463A-B978-C0AF8F7B5074}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7F0180A-3B79-46BC-B1ED-B838E1143742}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7F0180A-3B79-46BC-B1ED-B838E1143742}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7F0180A-3B79-46BC-B1ED-B838E1143742}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7F0180A-3B79-46BC-B1ED-B838E1143742}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE9A360-3CAF-4679-9C4B-A2699EB56A2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE9A360-3CAF-4679-9C4B-A2699EB56A2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE9A360-3CAF-4679-9C4B-A2699EB56A2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE9A360-3CAF-4679-9C4B-A2699EB56A2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

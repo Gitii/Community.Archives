@@ -10,7 +10,7 @@ public class StreamFixtureFile : IDisposable
 {
     public StreamFixtureFile()
     {
-        Content = Stream.Null;
+        Content = new MemoryStream(Array.Empty<byte>());
     }
 
     public StreamFixtureFile(string archivePath) : this()
@@ -18,7 +18,7 @@ public class StreamFixtureFile : IDisposable
         Load(archivePath);
     }
 
-    public Stream Content { get; private set; }
+    public MemoryStream Content { get; private set; }
 
     public void Load(string path)
     {

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Authors>Gitii</Authors>
+        <Description>A fast and efficient forward-only reader for `Apk` archives.</Description>
+        <IsPackable>true</IsPackable>
+        <PackageProjectUrl>https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Apk</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/Gitii/Community.Archives</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>apk</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <EnableNETAnalyzers>True</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <AnalysisLevel>latest</AnalysisLevel>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="IsExternalInit" Version="1.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SharpCompress" Version="0.30.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Community.Archives.Core\Community.Archives.Core.csproj" />
+    </ItemGroup>
+
+</Project>
