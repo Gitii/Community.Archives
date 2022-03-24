@@ -162,92 +162,79 @@ public class ApkResourceFinder
     private async Task ExtractPackageAsync(byte[] data)
     {
         long lastPosition = 0;
-        using (MemoryStream ms = new MemoryStream(data))
+        MemoryStream ms = new MemoryStream(data);
+        await using var _ = ms.ConfigureAwait(false);
+        var header = await ms.ReadStructAsync<PackageHeader>().ConfigureAwait(false);
+
+        package_id = header.id;
+
+        if (header.typeStrings != header.headerSize)
         {
-            using (BinaryReader br = new BinaryReader(ms))
+            throw new Exception(
+                "TypeStrings must immediately follow the package structure header."
+            );
+        }
+
+        await ms.SkipAsync(header.typeStrings - ms.Position).ConfigureAwait(false); // skip rest of header
+
+        Debug.WriteLine("Type strings:");
+        await ms.SkipAsync<GeneralPoolHeader>().ConfigureAwait(false);
+        typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
+
+        // goto next pool
+        await ms.SkipAsync(header.keyStrings - ms.Position).ConfigureAwait(false);
+
+        Debug.WriteLine("Key strings:");
+        var keyStringHeader = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
+        keyStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
+
+        // Iterate through all chunks
+        //
+        int typeSpecCount = 0;
+        int typeCount = 0;
+
+        await ms.SkipAsync((header.keyStrings + keyStringHeader.size) - ms.Position)
+            .ConfigureAwait(false);
+
+        while (true)
+        {
+            int pos = (int)ms.Position;
+            var h = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
+            short t = h.type;
+            short hs = h.headerSize;
+            int s = h.size;
+
+            if (t == RES_TABLE_TYPE_SPEC_TYPE)
             {
-                var header = await ms.ReadStructAsync<PackageHeader>().ConfigureAwait(false);
+                // Process the string pool
+                byte[] buffer = new byte[s];
+                ms.Seek(pos, SeekOrigin.Begin);
+                buffer = await ms.ReadBlockAsync(s).ConfigureAwait(false);
 
-                package_id = header.id;
+                ExtractTypeSpec(buffer);
 
-                if (header.typeStrings != header.headerSize)
-                {
-                    throw new Exception(
-                        "TypeStrings must immediately follow the package structure header."
-                    );
-                }
+                typeSpecCount++;
+            }
+            else if (t == RES_TABLE_TYPE_TYPE)
+            {
+                // Process the package
+                byte[] buffer = new byte[s];
+                ms.Seek(pos, SeekOrigin.Begin);
+                buffer = await ms.ReadBlockAsync(s).ConfigureAwait(false);
 
-                Debug.WriteLine("Type strings:");
-                lastPosition = br.BaseStream.Position;
-                br.BaseStream.Seek(
-                    header.typeStrings + Marshal.SizeOf<GeneralPoolHeader>(),
-                    SeekOrigin.Begin
-                );
+                ExtractTypes(buffer);
 
-                typeStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
+                typeCount++;
+            }
 
-                Debug.WriteLine("Key strings:");
-
-                br.BaseStream.Seek(header.keyStrings, SeekOrigin.Begin);
-                short key_type = br.Readt16();
-                short key_headerSize = br.Readt16();
-                int key_size = br.Readt32();
-
-                lastPosition = br.BaseStream.Position;
-                br.BaseStream.Seek(
-                    header.keyStrings + Marshal.SizeOf<GeneralPoolHeader>(),
-                    SeekOrigin.Begin
-                );
-
-                keyStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
-
-                // Iterate through all chunks
-                //
-                int typeSpecCount = 0;
-                int typeCount = 0;
-
-                br.BaseStream.Seek((header.keyStrings + key_size), SeekOrigin.Begin);
-
-                while (true)
-                {
-                    int pos = (int)br.BaseStream.Position;
-                    short t = br.Readt16();
-                    short hs = br.Readt16();
-                    int s = br.Readt32();
-
-                    if (t == RES_TABLE_TYPE_SPEC_TYPE)
-                    {
-                        // Process the string pool
-                        byte[] buffer = new byte[s];
-                        br.BaseStream.Seek(pos, SeekOrigin.Begin);
-                        buffer = br.ReadBytes(s);
-
-                        ExtractTypeSpec(buffer);
-
-                        typeSpecCount++;
-                    }
-                    else if (t == RES_TABLE_TYPE_TYPE)
-                    {
-                        // Process the package
-                        byte[] buffer = new byte[s];
-                        br.BaseStream.Seek(pos, SeekOrigin.Begin);
-                        buffer = br.ReadBytes(s);
-
-                        ExtractTypes(buffer);
-
-                        typeCount++;
-                    }
-
-                    br.BaseStream.Seek(pos + s, SeekOrigin.Begin);
-                    if (br.BaseStream.Position == br.BaseStream.Length)
-                    {
-                        break;
-                    }
-                }
-
-                return;
+            ms.Seek(pos + s, SeekOrigin.Begin);
+            if (ms.Position == ms.Length)
+            {
+                break;
             }
         }
+
+        return;
     }
 
     private void AddKeyValuePairToResponseMap(string resId, string value)
