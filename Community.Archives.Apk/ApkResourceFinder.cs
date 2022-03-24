@@ -79,30 +79,27 @@ public class ApkResourceFinder
         BinaryReader binaryReader
     )
     {
-        short type = binaryReader.Readt16();
-        short headerSize = binaryReader.Readt16();
-        int size = binaryReader.Readt32();
-        int packageCount = binaryReader.Readt32();
+        var header = await binaryReader.BaseStream
+            .ReadStructAsync<ResourceTableHeader>()
+            .ConfigureAwait(false);
 
-        if (type != RES_TABLE_TYPE)
+        if (header.type != RES_TABLE_TYPE)
         {
             throw new Exception("No RES_TABLE_TYPE found!");
         }
 
-        if (size != binaryReader.BaseStream.Length)
-        {
-            throw new Exception("The buffer size not matches to the resource table size.");
-        }
-
-        var (realStringPoolCount, realPackageCount) =
-            await ExtractPoolsAndPackagesAsync(binaryReader).ConfigureAwait(false);
+        var (realStringPoolCount, realPackageCount) = await ExtractPoolsAndPackagesAsync(
+                binaryReader,
+                header.packageCount
+            )
+            .ConfigureAwait(false);
 
         if (realStringPoolCount != 1)
         {
             throw new Exception("More than 1 string pool found!");
         }
 
-        if (realPackageCount != packageCount)
+        if (realPackageCount != header.packageCount)
         {
             throw new Exception("Real package count not equals the declared count.");
         }
@@ -111,15 +108,19 @@ public class ApkResourceFinder
     }
 
     private async Task<(int actualStringPoolCount, int actualPackageCount)> ExtractPoolsAndPackagesAsync(
-        BinaryReader binaryReader)
+        BinaryReader binaryReader,
+        int packageCount
+    )
     {
         var actualStringPoolCount = 0;
         var actualPackageCount = 0;
 
-        while (true)
+        for (int i = 0; i < (packageCount + 1); i++)
         {
             long pos = binaryReader.BaseStream.Position;
-            var header = await binaryReader.BaseStream.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
+            var header = await binaryReader.BaseStream
+                .ReadStructAsync<GeneralPoolHeader>()
+                .ConfigureAwait(false);
 
             if (header.type == RES_STRING_POOL_TYPE)
             {
@@ -128,9 +129,8 @@ public class ApkResourceFinder
                     // Only the first string pool is processed.
                     Debug.WriteLine("Processing the string pool ...");
 
-                    valueStringPool =
-                        await ReadStringPoolAsync(binaryReader.BaseStream)
-                            .ConfigureAwait(false);
+                    valueStringPool = await ReadStringPoolAsync(binaryReader.BaseStream)
+                        .ConfigureAwait(false);
                 }
 
                 actualStringPoolCount++;
@@ -154,10 +154,6 @@ public class ApkResourceFinder
             }
 
             binaryReader.BaseStream.Seek(pos + (long)header.size, SeekOrigin.Begin);
-            if (binaryReader.BaseStream.Position == binaryReader.BaseStream.Length)
-            {
-                break;
-            }
         }
 
         return (actualStringPoolCount, actualPackageCount);
@@ -183,7 +179,10 @@ public class ApkResourceFinder
 
                 Debug.WriteLine("Type strings:");
                 lastPosition = br.BaseStream.Position;
-                br.BaseStream.Seek(header.typeStrings + Marshal.SizeOf<GeneralPoolHeader>(), SeekOrigin.Begin);
+                br.BaseStream.Seek(
+                    header.typeStrings + Marshal.SizeOf<GeneralPoolHeader>(),
+                    SeekOrigin.Begin
+                );
 
                 typeStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
 
@@ -195,7 +194,10 @@ public class ApkResourceFinder
                 int key_size = br.Readt32();
 
                 lastPosition = br.BaseStream.Position;
-                br.BaseStream.Seek(header.keyStrings + Marshal.SizeOf<GeneralPoolHeader>(), SeekOrigin.Begin);
+                br.BaseStream.Seek(
+                    header.keyStrings + Marshal.SizeOf<GeneralPoolHeader>(),
+                    SeekOrigin.Begin
+                );
 
                 keyStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
 
@@ -413,10 +415,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                            + resource_id.ToString("X4")
-                            + ", key: "
-                            + keyStringPool[entry_key]
-                            + ", complex value, not printed."
+                                + resource_id.ToString("X4")
+                                + ", key: "
+                                + keyStringPool[entry_key]
+                                + ", complex value, not printed."
                         );
                     }
                 }
