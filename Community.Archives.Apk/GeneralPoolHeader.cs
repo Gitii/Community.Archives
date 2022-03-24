@@ -3,8 +3,9 @@
 namespace Community.Archives.Apk;
 
 [StructLayout(LayoutKind.Sequential)]
-internal struct StringPoolHeader
+internal struct GeneralPoolHeader
 {
-    public GeneralPoolHeader generalHeader;
-    public StringPoolHeaderSuffix suffix;
+    public short type;
+    public short headerSize;
+    public int size;
 }
