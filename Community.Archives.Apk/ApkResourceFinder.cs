@@ -128,13 +128,10 @@ public class ApkResourceFinder
                 {
                     // Only the first string pool is processed.
                     Debug.WriteLine("Processing the string pool ...");
-
-                    byte[] buffer = new byte[s];
                     binaryReader.BaseStream.Seek(pos, SeekOrigin.Begin);
-                    buffer = binaryReader.ReadBytes(s);
-                    //br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                    valueStringPool = await ExtractStringPoolAsync(buffer).ConfigureAwait(false);
+                    valueStringPool = await ReadStringPoolAsync(binaryReader.BaseStream)
+                        .ConfigureAwait(false);
                 }
 
                 actualStringPoolCount++;
@@ -188,12 +185,8 @@ public class ApkResourceFinder
                 Debug.WriteLine("Type strings:");
                 lastPosition = br.BaseStream.Position;
                 br.BaseStream.Seek(header.typeStrings, SeekOrigin.Begin);
-                byte[] bbTypeStrings = br.ReadBytes(
-                    (int)(br.BaseStream.Length - br.BaseStream.Position)
-                );
-                br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                typeStringPool = await ExtractStringPoolAsync(bbTypeStrings).ConfigureAwait(false);
+                typeStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
 
                 Debug.WriteLine("Key strings:");
 
@@ -204,12 +197,8 @@ public class ApkResourceFinder
 
                 lastPosition = br.BaseStream.Position;
                 br.BaseStream.Seek(header.keyStrings, SeekOrigin.Begin);
-                byte[] bbKeyStrings = br.ReadBytes(
-                    (int)(br.BaseStream.Length - br.BaseStream.Position)
-                );
-                br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
 
-                keyStringPool = await ExtractStringPoolAsync(bbKeyStrings).ConfigureAwait(false);
+                keyStringPool = await ReadStringPoolAsync(br.BaseStream).ConfigureAwait(false);
 
                 // Iterate through all chunks
                 //
@@ -425,10 +414,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                            + resource_id.ToString("X4")
-                            + ", key: "
-                            + keyStringPool[entry_key]
-                            + ", complex value, not printed."
+                                + resource_id.ToString("X4")
+                                + ", key: "
+                                + keyStringPool[entry_key]
+                                + ", complex value, not printed."
                         );
                     }
                 }
@@ -457,12 +446,9 @@ public class ApkResourceFinder
         }
     }
 
-    private async Task<string[]> ExtractStringPoolAsync(byte[] data)
+    private async Task<string[]> ReadStringPoolAsync(Stream ms)
     {
-        long lastPosition = 0;
-
-        MemoryStream ms = new MemoryStream(data);
-        await using var _ = ms.ConfigureAwait(false);
+        var initialStreamPosition = ms.Position;
 
         var header = await ms.ReadStructAsync<StringPoolHeader>().ConfigureAwait(false);
 
@@ -474,18 +460,16 @@ public class ApkResourceFinder
 
         for (int i = 0; i < header.stringCount; i++)
         {
-            int pos = header.stringsStart + offsets[i];
+            long pos = header.stringsStart + offsets[i] + initialStreamPosition;
             await ms.SkipAsync(pos - ms.Position).ConfigureAwait(false);
 
             strings[i] = await ReadStringAsync(isUtf8String, ms).ConfigureAwait(false);
-
-            Debug.WriteLine("Parsed value: {0}", strings[i]);
         }
 
         return strings;
     }
 
-    private static async Task<string> ReadStringAsync(bool isUtf8String, MemoryStream ms)
+    private static async Task<string> ReadStringAsync(bool isUtf8String, Stream ms)
     {
         string newString = String.Empty;
         if (isUtf8String)
@@ -504,7 +488,8 @@ public class ApkResourceFinder
 
             if (lengthOfUtf16String > 0)
             {
-                var utf16Data = await ms.ReadBlockAsync(lengthOfUtf16String * 2).ConfigureAwait(false);
+                var utf16Data = await ms.ReadBlockAsync(lengthOfUtf16String * 2)
+                    .ConfigureAwait(false);
                 newString = Encoding.Unicode.GetString(utf16Data);
             }
         }
@@ -512,7 +497,7 @@ public class ApkResourceFinder
         return newString;
     }
 
-    private static int ReadUtf816StringLength(MemoryStream ms)
+    private static int ReadUtf816StringLength(Stream ms)
     {
         int u16len = ReadUInt16();
         if ((u16len & 0x8000) != 0)
@@ -536,7 +521,7 @@ public class ApkResourceFinder
         }
     }
 
-    private static int ReadUtf8StringLength(MemoryStream ms)
+    private static int ReadUtf8StringLength(Stream ms)
     {
         int u16len = ms.ReadByte(); // u16len
         if ((u16len & 0x80) != 0)
