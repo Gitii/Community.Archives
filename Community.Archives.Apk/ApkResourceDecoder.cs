@@ -8,17 +8,17 @@ namespace Community.Archives.Apk;
 
 public class ApkResourceDecoder : IApkResourceDecoder
 {
-    private const short RES_STRING_POOL_TYPE = 0x0001;
-    private const short RES_TABLE_TYPE = 0x0002;
-    private const short RES_TABLE_PACKAGE_TYPE = 0x0200;
-    private const short RES_TABLE_TYPE_TYPE = 0x0201;
-    private const short RES_TABLE_TYPE_SPEC_TYPE = 0x0202;
+    private const short ResStringPoolType = 0x0001;
+    private const short ResTableType = 0x0002;
+    private const short ResTablePackageType = 0x0200;
+    private const short ResTableTypeType = 0x0201;
+    private const short ResTableTypeSpecType = 0x0202;
 
-    string[] valueStringPool = Array.Empty<string>();
-    string[] typeStringPool = Array.Empty<string>();
-    string[] keyStringPool = Array.Empty<string>();
+    string[] _valueStringPool = Array.Empty<string>();
+    string[] _typeStringPool = Array.Empty<string>();
+    string[] _keyStringPool = Array.Empty<string>();
 
-    private int package_id = 0;
+    private int _packageId = 0;
 
     private ILogger<ApkResourceDecoder> _logger;
 
@@ -51,18 +51,18 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     // The 'data' holds a ResTable_ref, a reference to another resource
     // table entry.
-    private const byte TYPE_REFERENCE = 0x01;
+    private const byte TypeReference = 0x01;
 
     // The 'data' holds an index into the containing resource table's
     // global value string pool.
-    public const byte TYPE_STRING = 0x03;
+    public const byte TypeString = 0x03;
 
-    private IDictionary<string, IList<string?>> responseMap = new Dictionary<
+    private IDictionary<string, IList<string?>> _responseMap = new Dictionary<
         string,
         IList<string?>
     >();
 
-    Dictionary<int, List<string>> entryMap = new Dictionary<int, List<string>>();
+    Dictionary<int, List<string>> _entryMap = new Dictionary<int, List<string>>();
 
     public ApkResourceDecoder(ILogger<ApkResourceDecoder> logger)
     {
@@ -78,7 +78,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     public Task<IDictionary<string, IList<string>>> DecodeAsync(Stream stream)
     {
-        responseMap = new Dictionary<string, IList<string?>>();
+        _responseMap = new Dictionary<string, IList<string?>>();
 
         return ExtractDataAsync(stream);
     }
@@ -87,7 +87,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
     {
         var header = await stream.ReadStructAsync<ResourceTableHeader>().ConfigureAwait(false);
 
-        if (header.type != RES_TABLE_TYPE)
+        if (header.type != ResTableType)
         {
             throw new Exception("No RES_TABLE_TYPE found!");
         }
@@ -108,7 +108,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
             throw new Exception("Real package count not equals the declared count.");
         }
 
-        return responseMap;
+        return _responseMap;
     }
 
     private async Task<(int actualStringPoolCount, int actualPackageCount)> ExtractPoolsAndPackagesAsync(
@@ -124,19 +124,19 @@ public class ApkResourceDecoder : IApkResourceDecoder
             long pos = stream.Position;
             var header = await stream.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
 
-            if (header.type == RES_STRING_POOL_TYPE)
+            if (header.type == ResStringPoolType)
             {
                 if (actualStringPoolCount == 0)
                 {
                     // Only the first string pool is processed.
                     _logger.LogDebug("Processing the string pool ...");
 
-                    valueStringPool = await ReadStringPoolAsync(stream).ConfigureAwait(false);
+                    _valueStringPool = await ReadStringPoolAsync(stream).ConfigureAwait(false);
                 }
 
                 actualStringPoolCount++;
             }
-            else if (header.type == RES_TABLE_PACKAGE_TYPE)
+            else if (header.type == ResTablePackageType)
             {
                 // Process the package
                 _logger.LogDebug("Processing package {0} ...", actualPackageCount);
@@ -156,12 +156,15 @@ public class ApkResourceDecoder : IApkResourceDecoder
         return (actualStringPoolCount, actualPackageCount);
     }
 
-    private async Task<(int typeSpecCount, int typeCount)> ExtractPackageAsync(Stream ms, GeneralPoolHeader header)
+    private async Task<(int typeSpecCount, int typeCount)> ExtractPackageAsync(
+        Stream ms,
+        GeneralPoolHeader header
+    )
     {
         long lastPosition = ms.Position - Marshal.SizeOf<GeneralPoolHeader>();
         var headerSuffix = await ms.ReadStructAsync<PackageHeaderSuffix>().ConfigureAwait(false);
 
-        package_id = headerSuffix.id;
+        _packageId = headerSuffix.id;
 
         if (headerSuffix.typeStrings != header.headerSize)
         {
@@ -173,7 +176,8 @@ public class ApkResourceDecoder : IApkResourceDecoder
         await ms.SkipAsync(headerSuffix.typeStrings - (ms.Position - lastPosition))
             .ConfigureAwait(false); // skip rest of header
 
-        var keyStringHeader = await ExtractPoolsAsync(ms, headerSuffix, lastPosition).ConfigureAwait(false);
+        var keyStringHeader = await ExtractPoolsAsync(ms, headerSuffix, lastPosition)
+            .ConfigureAwait(false);
 
         // Iterate through all chunks
         //
@@ -194,13 +198,13 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
             switch (h.type)
             {
-                case RES_TABLE_TYPE_SPEC_TYPE:
+                case ResTableTypeSpecType:
                     // Process the string pool
-                    await ExtractTypeSpecAsync(ms, typeStringPool).ConfigureAwait(false);
+                    await ExtractTypeSpecAsync(ms, _typeStringPool).ConfigureAwait(false);
 
                     typeSpecCount++;
                     break;
-                case RES_TABLE_TYPE_TYPE:
+                case ResTableTypeType:
                     // Process the package
                     await ExtractTypesAsync(ms, h).ConfigureAwait(false);
 
@@ -215,12 +219,15 @@ public class ApkResourceDecoder : IApkResourceDecoder
         return (typeSpecCount, typeCount);
     }
 
-    private async Task<GeneralPoolHeader> ExtractPoolsAsync(Stream ms, PackageHeaderSuffix headerSuffix,
-        long lastPosition)
+    private async Task<GeneralPoolHeader> ExtractPoolsAsync(
+        Stream ms,
+        PackageHeaderSuffix headerSuffix,
+        long lastPosition
+    )
     {
         _logger.LogDebug("Type strings:");
         await ms.SkipAsync<GeneralPoolHeader>().ConfigureAwait(false);
-        typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
+        _typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
 
         // goto next pool
         await ms.SkipAsync(headerSuffix.keyStrings - (ms.Position - lastPosition))
@@ -228,7 +235,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
         _logger.LogDebug("Key strings:");
         var keyStringHeader = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
-        keyStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
+        _keyStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
         return keyStringHeader;
     }
 
@@ -236,10 +243,10 @@ public class ApkResourceDecoder : IApkResourceDecoder
     {
         var upperResId = resId.ToUpper();
 
-        if (!responseMap.TryGetValue(upperResId, out var valueList))
+        if (!_responseMap.TryGetValue(upperResId, out var valueList))
         {
             valueList = new List<string?>();
-            responseMap.Add(upperResId, valueList);
+            _responseMap.Add(upperResId, valueList);
         }
 
         valueList.Add(value);
@@ -252,7 +259,11 @@ public class ApkResourceDecoder : IApkResourceDecoder
         Dictionary<string, int> refKeys = new Dictionary<string, int>();
 
         // Skip the config data
-        await ms.SkipAsync(header.headerSize - Marshal.SizeOf<TypeSuffix>() - Marshal.SizeOf<GeneralPoolHeader>())
+        await ms.SkipAsync(
+                header.headerSize
+                    - Marshal.SizeOf<TypeSuffix>()
+                    - Marshal.SizeOf<GeneralPoolHeader>()
+            )
             .ConfigureAwait(false);
 
         if (header.headerSize + headerSuffix.entryCount * 4 != headerSuffix.entriesStart)
@@ -267,7 +278,8 @@ public class ApkResourceDecoder : IApkResourceDecoder
         // Get entries
         for (int i = 0; i < headerSuffix.entryCount; ++i)
         {
-            await ProcessEntryAsync(ms, entryIndices, i, headerSuffix, refKeys).ConfigureAwait(false);
+            await ProcessEntryAsync(ms, entryIndices, i, headerSuffix, refKeys)
+                .ConfigureAwait(false);
         }
 
         BuildResponseMap(refKeys);
@@ -281,9 +293,9 @@ public class ApkResourceDecoder : IApkResourceDecoder
         {
             IList<string?>? values = null;
             string key = $"@{refKeys[refK].ToString("X4").ToUpper()}";
-            if (responseMap.ContainsKey(key))
+            if (_responseMap.ContainsKey(key))
             {
-                values = responseMap[key];
+                values = _responseMap[key];
             }
 
             if (values == null)
@@ -298,69 +310,76 @@ public class ApkResourceDecoder : IApkResourceDecoder
         }
     }
 
-    private async Task ProcessEntryAsync(Stream ms, int[] entryIndices, int i, TypeSuffix headerSuffix,
-        Dictionary<string, int> refKeys)
+    private async Task ProcessEntryAsync(
+        Stream ms,
+        int[] entryIndices,
+        int i,
+        TypeSuffix headerSuffix,
+        Dictionary<string, int> refKeys
+    )
     {
         if (entryIndices[i] == -1)
         {
             return;
         }
 
-        int resourceId = (package_id << 24) | (headerSuffix.id << 16) | i;
+        int resourceId = (_packageId << 24) | (headerSuffix.id << 16) | i;
 
         var entryHeader = await ms.ReadStructAsync<EntryHeader>().ConfigureAwait(false);
 
         // Get the value (simple) or map (complex)
-        int FLAG_COMPLEX = 0x0001;
+        int flagComplex = 0x0001;
 
-        if ((entryHeader.entryFlag & FLAG_COMPLEX) == FLAG_COMPLEX)
+        if ((entryHeader.entryFlag & flagComplex) == flagComplex)
         {
             var entry = await ms.ReadStructAsync<ComplexEntryBody>().ConfigureAwait(false);
 
             await ms.ReadStructAsync<ComplexEntryItemBody>(entry.entryCount).ConfigureAwait(false);
 
             _logger.LogDebug(
-                $"Entry 0x{resourceId:X4}, key: {keyStringPool[entryHeader.entryKey]}, complex value, not printed."
+                $"Entry 0x{resourceId:X4}, key: {_keyStringPool[entryHeader.entryKey]}, complex value, not printed."
             );
         }
         else
         {
             // Simple case
-            await ProcessSimpleEntryBodyAsync(ms, refKeys, resourceId, entryHeader).ConfigureAwait(false);
+            await ProcessSimpleEntryBodyAsync(ms, refKeys, resourceId, entryHeader)
+                .ConfigureAwait(false);
         }
     }
 
-    private async Task ProcessSimpleEntryBodyAsync(Stream ms, IDictionary<string, int> refKeys, int resourceId,
-        EntryHeader entryHeader)
+    private async Task ProcessSimpleEntryBodyAsync(
+        Stream ms,
+        IDictionary<string, int> refKeys,
+        int resourceId,
+        EntryHeader entryHeader
+    )
     {
-        var entry = await ms.ReadStructAsync<SimpleEntryBody>()
-            .ConfigureAwait(false);
+        var entry = await ms.ReadStructAsync<SimpleEntryBody>().ConfigureAwait(false);
 
         string idStr = resourceId.ToString("X4");
-        string keyStr = keyStringPool[entryHeader.entryKey];
+        string keyStr = _keyStringPool[entryHeader.entryKey];
         string? data = null;
 
-        _logger.LogDebug(
-            $"Entry 0x{idStr}, key: {keyStr}, simple value type: "
-        );
+        _logger.LogDebug($"Entry 0x{idStr}, key: {keyStr}, simple value type: ");
 
         var key = int.Parse(idStr, System.Globalization.NumberStyles.HexNumber);
 
-        if (!entryMap.TryGetValue(key, out var entryArr))
+        if (!_entryMap.TryGetValue(key, out var entryArr))
         {
             entryArr = new List<string>();
-            entryMap.Add(key, entryArr);
+            _entryMap.Add(key, entryArr);
         }
 
         entryArr.Add(keyStr);
 
         switch (entry.valueDataType)
         {
-            case TYPE_STRING:
-                data = valueStringPool[entry.valueData];
+            case TypeString:
+                data = _valueStringPool[entry.valueData];
                 _logger.LogDebug($", data: {data}");
                 break;
-            case TYPE_REFERENCE:
+            case TypeReference:
                 refKeys.Add(idStr, entry.valueData);
                 break;
             default:
@@ -425,14 +444,14 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     private static int ReadUtf816StringLength(Stream ms)
     {
-        int u16len = ReadUInt16();
-        if ((u16len & 0x8000) != 0)
+        int u16Len = ReadUInt16();
+        if ((u16Len & 0x8000) != 0)
         {
             // larger than 32768
-            u16len = ((u16len & 0x7FFF) << 16) + ReadUInt16();
+            u16Len = ((u16Len & 0x7FFF) << 16) + ReadUInt16();
         }
 
-        return u16len;
+        return u16Len;
 
         ushort ReadUInt16()
         {
@@ -449,22 +468,22 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     private static int ReadUtf8StringLength(Stream ms)
     {
-        int u16len = ms.ReadByte(); // u16len
-        if ((u16len & 0x80) != 0)
+        int u16Len = ms.ReadByte(); // u16len
+        if ((u16Len & 0x80) != 0)
         {
             // larger than 128
             // u16len = ((u16len & 0x7F) << 8) + ms.ReadByte();
             ms.ReadByte();
         }
 
-        int u8len = ms.ReadByte(); // u8len
-        if ((u8len & 0x80) != 0)
+        int u8Len = ms.ReadByte(); // u8len
+        if ((u8Len & 0x80) != 0)
         {
             // larger than 128
-            u8len = ((u8len & 0x7F) << 8) + ms.ReadByte();
+            u8Len = ((u8Len & 0x7F) << 8) + ms.ReadByte();
         }
 
-        return u8len;
+        return u8Len;
     }
 
     private async Task ExtractTypeSpecAsync(Stream ms, string[] stringPool)

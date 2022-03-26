@@ -11,13 +11,13 @@ public class AndroidManifestReader : IAndroidManifestReader
 {
     // Parses the 'compressed' binary form of Android XML docs
     // such as for AndroidManifest.binaryXml in .apk files
-    private const int END_DOC_TAG = 0x00100101;
-    private const int START_TAG = 0x00100102;
-    private const int END_TAG = 0x00100103;
+    private const int EndDocTag = 0x00100101;
+    private const int StartTag = 0x00100102;
+    private const int EndTag = 0x00100103;
 
     // StringIndexTable starts at offset 24x, an array of 32 bit LE offsets
     // of the length/string data in the StringTable.
-    private const int STRING_INDEX_TABLE_OFFSET = 0x24;
+    private const int StringIndexTableOffset = 0x24;
 
     private byte[] _xml = Array.Empty<byte>();
 
@@ -72,17 +72,17 @@ public class AndroidManifestReader : IAndroidManifestReader
             var tagCode = BitConverter.ToInt32(_xml, tagOffset);
             switch (tagCode)
             {
-                case START_TAG:
+                case StartTag:
                     tagOffset += ReadStartTag(tagOffset, out var startTag);
                     tagStack.Peek().Add(startTag);
                     tagStack.Push(startTag);
                     break;
-                case END_TAG:
+                case EndTag:
                     var expectedTagName = tagStack.Peek().Name.LocalName;
                     tagOffset += ReadEndTag(tagOffset, expectedTagName);
                     tagStack.Pop();
                     break;
-                case END_DOC_TAG:
+                case EndDocTag:
                     goto manifest_read;
                 default:
                     goto manifest_read;
@@ -183,7 +183,7 @@ public class AndroidManifestReader : IAndroidManifestReader
         //   3rd word SEEMS TO BE:  Offset at then of StringTable
         //   4th word is: Number of strings in string table
         var stringsCount = BitConverter.ToInt32(_xml, 4 * 4);
-        return STRING_INDEX_TABLE_OFFSET + stringsCount * 4;
+        return StringIndexTableOffset + stringsCount * 4;
     }
 
     /// <summary> Return the string stored in StringTable format at
@@ -202,7 +202,7 @@ public class AndroidManifestReader : IAndroidManifestReader
         // StringTable follows StrIndexTable
         var stringOffset =
             GetStringTableOffset()
-            + BitConverter.ToInt32(_xml, STRING_INDEX_TABLE_OFFSET + strInd * 4);
+            + BitConverter.ToInt32(_xml, StringIndexTableOffset + strInd * 4);
         var stringLength = BitConverter.ToInt16(_xml, stringOffset);
         return Encoding.Unicode.GetString(_xml, stringOffset + 2, stringLength * 2);
     }
@@ -218,7 +218,7 @@ public class AndroidManifestReader : IAndroidManifestReader
 
         for (var offset = xmlTagOffset; offset < _xml.Length - 4; offset += 4)
         {
-            if (BitConverter.ToInt32(_xml, offset) == START_TAG)
+            if (BitConverter.ToInt32(_xml, offset) == StartTag)
             {
                 return offset;
             }
