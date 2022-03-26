@@ -70,18 +70,13 @@ public class ApkResourceFinder
         responseMap = new Dictionary<string, IList<string>>();
 
         using MemoryStream ms = new MemoryStream(data);
-        using BinaryReader br = new BinaryReader(ms);
 
-        return ExtractDataAsync(br);
+        return ExtractDataAsync(ms);
     }
 
-    private async Task<IDictionary<string, IList<string>>> ExtractDataAsync(
-        BinaryReader binaryReader
-    )
+    private async Task<IDictionary<string, IList<string>>> ExtractDataAsync(Stream stream)
     {
-        var header = await binaryReader.BaseStream
-            .ReadStructAsync<ResourceTableHeader>()
-            .ConfigureAwait(false);
+        var header = await stream.ReadStructAsync<ResourceTableHeader>().ConfigureAwait(false);
 
         if (header.type != RES_TABLE_TYPE)
         {
@@ -89,7 +84,7 @@ public class ApkResourceFinder
         }
 
         var (realStringPoolCount, realPackageCount) = await ExtractPoolsAndPackagesAsync(
-                binaryReader,
+                stream,
                 header.packageCount
             )
             .ConfigureAwait(false);
@@ -108,7 +103,7 @@ public class ApkResourceFinder
     }
 
     private async Task<(int actualStringPoolCount, int actualPackageCount)> ExtractPoolsAndPackagesAsync(
-        BinaryReader binaryReader,
+        Stream stream,
         int packageCount
     )
     {
@@ -117,10 +112,8 @@ public class ApkResourceFinder
 
         for (int i = 0; i < (packageCount + 1); i++)
         {
-            long pos = binaryReader.BaseStream.Position;
-            var header = await binaryReader.BaseStream
-                .ReadStructAsync<GeneralPoolHeader>()
-                .ConfigureAwait(false);
+            long pos = stream.Position;
+            var header = await stream.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
 
             if (header.type == RES_STRING_POOL_TYPE)
             {
@@ -129,8 +122,7 @@ public class ApkResourceFinder
                     // Only the first string pool is processed.
                     Debug.WriteLine("Processing the string pool ...");
 
-                    valueStringPool = await ReadStringPoolAsync(binaryReader.BaseStream)
-                        .ConfigureAwait(false);
+                    valueStringPool = await ReadStringPoolAsync(stream).ConfigureAwait(false);
                 }
 
                 actualStringPoolCount++;
@@ -140,7 +132,7 @@ public class ApkResourceFinder
                 // Process the package
                 Debug.WriteLine("Processing package {0} ...", actualPackageCount);
 
-                await ExtractPackageAsync(binaryReader.BaseStream, header).ConfigureAwait(false);
+                await ExtractPackageAsync(stream, header).ConfigureAwait(false);
 
                 actualPackageCount++;
             }
@@ -149,7 +141,7 @@ public class ApkResourceFinder
                 throw new InvalidOperationException("Unsupported Type");
             }
 
-            binaryReader.BaseStream.Seek(pos + (long)header.size, SeekOrigin.Begin);
+            stream.Seek(pos + (long)header.size, SeekOrigin.Begin);
         }
 
         return (actualStringPoolCount, actualPackageCount);
@@ -177,7 +169,8 @@ public class ApkResourceFinder
         typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
 
         // goto next pool
-        await ms.SkipAsync(headerSuffix.keyStrings - (ms.Position - lastPosition)).ConfigureAwait(false);
+        await ms.SkipAsync(headerSuffix.keyStrings - (ms.Position - lastPosition))
+            .ConfigureAwait(false);
 
         Debug.WriteLine("Key strings:");
         var keyStringHeader = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
@@ -188,48 +181,44 @@ public class ApkResourceFinder
         int typeSpecCount = 0;
         int typeCount = 0;
 
-        await ms.SkipAsync((headerSuffix.keyStrings + keyStringHeader.size) - (ms.Position - lastPosition))
+        await ms.SkipAsync(
+                (headerSuffix.keyStrings + keyStringHeader.size) - (ms.Position - lastPosition)
+            )
             .ConfigureAwait(false);
 
-        while (true)
+        long bytesLeft = header.size - (ms.Position - lastPosition);
+
+        while (bytesLeft > 0)
         {
             int pos = (int)ms.Position;
             var h = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
-            short t = h.type;
-            short hs = h.headerSize;
-            int s = h.size;
 
-            if (t == RES_TABLE_TYPE_SPEC_TYPE)
+            if (h.type == RES_TABLE_TYPE_SPEC_TYPE)
             {
                 // Process the string pool
-                byte[] buffer = new byte[s];
+                byte[] buffer = new byte[h.size];
                 ms.Seek(pos, SeekOrigin.Begin);
-                buffer = await ms.ReadBlockAsync(s).ConfigureAwait(false);
+                buffer = await ms.ReadBlockAsync(h.size).ConfigureAwait(false);
 
                 ExtractTypeSpec(buffer);
 
                 typeSpecCount++;
             }
-            else if (t == RES_TABLE_TYPE_TYPE)
+            else if (h.type == RES_TABLE_TYPE_TYPE)
             {
                 // Process the package
-                byte[] buffer = new byte[s];
+                byte[] buffer = new byte[h.size];
                 ms.Seek(pos, SeekOrigin.Begin);
-                buffer = await ms.ReadBlockAsync(s).ConfigureAwait(false);
+                buffer = await ms.ReadBlockAsync(h.size).ConfigureAwait(false);
 
                 ExtractTypes(buffer);
 
                 typeCount++;
             }
 
-            ms.Seek(pos + s, SeekOrigin.Begin);
-            if (ms.Position == ms.Length)
-            {
-                break;
-            }
+            ms.Seek(pos + h.size, SeekOrigin.Begin);
+            bytesLeft -= h.size;
         }
-
-        return;
     }
 
     private void AddKeyValuePairToResponseMap(string resId, string value)
@@ -397,10 +386,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                            + resource_id.ToString("X4")
-                            + ", key: "
-                            + keyStringPool[entry_key]
-                            + ", complex value, not printed."
+                                + resource_id.ToString("X4")
+                                + ", key: "
+                                + keyStringPool[entry_key]
+                                + ", complex value, not printed."
                         );
                     }
                 }
