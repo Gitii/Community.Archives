@@ -141,7 +141,7 @@ public class ApkResourceFinder
                 throw new InvalidOperationException("Unsupported Type");
             }
 
-            stream.Seek(pos + (long)header.size, SeekOrigin.Begin);
+            await stream.SkipAsync(header.size - (stream.Position - pos)).ConfigureAwait(false);
         }
 
         return (actualStringPoolCount, actualPackageCount);
