@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Community.Archives.Core.Tests;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -18,8 +20,8 @@ public class ApkResourceFinderTests
         var actualResourcesStream = new StreamFixtureFile("Fixtures/resources.arsc");
         var expectedResourcesStream = new StreamFixtureFile("Fixtures/resources.json");
 
-        var reader = new ApkResourceFinder();
-        var actualEntries = await reader.ProcessResourceTableAsync(
+        var reader = new ApkResourceDecoder(new NullLogger<ApkResourceDecoder>());
+        var actualEntries = await reader.DecodeAsync(
             actualResourcesStream.Content.ToArray()
         );
 

@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using System.Xml.Linq;
 
 namespace Community.Archives.Apk;
 
-/// <summary> Unpacks and reads data from a compressed apk manifest file. </summary>
 /// <remarks>
 /// Code coming from:
 /// https://stackoverflow.com/questions/18997163/how-can-i-read-the-manifest-of-an-android-apk-file-using-c-sharp-net/22314629
 /// </remarks>
-public class AndroidManifestReader
+public class AndroidManifestReader : IAndroidManifestReader
 {
     // Parses the 'compressed' binary form of Android XML docs
     // such as for AndroidManifest.binaryXml in .apk files
@@ -22,16 +19,43 @@ public class AndroidManifestReader
     // of the length/string data in the StringTable.
     private const int STRING_INDEX_TABLE_OFFSET = 0x24;
 
-    private readonly byte[] _xml;
+    private byte[] _xml = Array.Empty<byte>();
 
     private XDocument? _manifest;
 
-    /// <summary>Reads and returns the uncompressed Xml Manifest</summary>
-    public XDocument Manifest => _manifest ??= ReadManifest();
+    /// <summary>Returns the uncompressed Xml Manifest or <c>null</c> if <see cref="ReadAsync"/> or <see cref="Read"/> hasn't been called, yet.</summary>
+    public XDocument? Manifest => _manifest;
 
-    public AndroidManifestReader(byte[] xml)
+    /// <summary>
+    /// Reads all bytes from the passed in stream, reads the document from the data and returns the uncompressed xml manifest.
+    /// </summary>
+    /// <param name="stream">The input stream</param>
+    /// <returns>The uncompressed xml document.</returns>
+    /// <exception cref="Exception">Could not read all bytes from input stream.</exception>
+    public async Task<XDocument> ReadAsync(Stream stream)
     {
-        _xml = xml ?? throw new ArgumentNullException(nameof(xml));
+        var buffer = new byte[stream.Length];
+
+        var readBytes = await stream.ReadAsync(buffer).ConfigureAwait(false);
+
+        if (readBytes != stream.Length)
+        {
+            throw new Exception("Could not read all bytes from input stream");
+        }
+
+        return Read(buffer);
+    }
+
+    /// <summary>
+    /// Reads the document from the data and returns the uncompressed xml manifest.
+    /// </summary>
+    /// <param name="data">The data from which the document is being read.</param>
+    /// <returns>The uncompressed xml document.</returns>
+    public XDocument Read(byte[] data)
+    {
+        _xml = data;
+
+        return (_manifest = ReadManifest());
     }
 
     private XDocument ReadManifest()
@@ -138,8 +162,8 @@ public class AndroidManifestReader
         var tagName = ReadTagName(tagOffset);
         // Skip over 6 words of endTag data
         return tagName == expectedTagName
-          ? 6 * 4
-          : throw new InvalidOperationException(
+            ? 6 * 4
+            : throw new InvalidOperationException(
                 $"Malformed XML: expecting {expectedTagName} but found {tagName}"
             );
     }

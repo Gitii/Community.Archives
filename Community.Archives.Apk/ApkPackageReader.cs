@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO.Compression;
-using System.Text;
+﻿using System.Collections;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using System.Xml.Schema;
 using System.Xml.XPath;
 using Community.Archives.Core;
+using Microsoft.Extensions.Logging.Abstractions;
 using SharpCompress.Readers.Zip;
 
 namespace Community.Archives.Apk;
 
 public class ApkPackageReader : IArchiveReader
 {
+#pragma warning disable CS1998
     public async IAsyncEnumerable<ArchiveEntry> GetFileEntriesAsync(
+#pragma warning restore CS1998
         Stream stream,
         params string[] regexMatcher
     )
@@ -27,19 +24,15 @@ public class ApkPackageReader : IArchiveReader
             var item = zip.Entry;
             if (!item.IsDirectory && regexMatcher.Any((regex) => Regex.IsMatch(item.Key, regex)))
             {
-                yield return new ArchiveEntry()
-                {
-                    Name = item.Key,
-                    Content = zip.OpenEntryStream()
-                };
+                yield return new ArchiveEntry() { Name = item.Key, Content = zip.OpenEntryStream() };
             }
         }
     }
 
     public async Task<IArchiveReader.ArchiveMetaData> GetMetaDataAsync(Stream stream)
     {
-        MemoryStream manifest = new MemoryStream();
-        MemoryStream resources = new MemoryStream();
+        Stream manifest = Stream.Null;
+        Stream resources = Stream.Null;
 
         await foreach (
             var entry in GetFileEntriesAsync(stream, "^AndroidManifest.xml$", "^resources.arsc$")
@@ -48,11 +41,11 @@ public class ApkPackageReader : IArchiveReader
         {
             if (entry.Name == "AndroidManifest.xml")
             {
-                await entry.Content.CopyToAsync(manifest).ConfigureAwait(false);
+                manifest = entry.Content;
             }
             else
             {
-                await entry.Content.CopyToAsync(resources).ConfigureAwait(false);
+                resources = entry.Content;
             }
         }
 
@@ -66,8 +59,7 @@ public class ApkPackageReader : IArchiveReader
             throw new Exception("The apk doesn't contain a resource file.");
         }
 
-        var decodedManifest = DecodeBinaryXml(manifest);
-        // var decodedResources = DecodeBinaryResources(resources);
+        var decodedManifest = await DecodeBinaryXmlAsync(manifest).ConfigureAwait(false);
 
         var package = SelectWithXPath(decodedManifest, "/*/manifest[1]/@package");
         var versionName = SelectWithXPath(decodedManifest, "/*/manifest[1]/@versionName");
@@ -88,9 +80,9 @@ public class ApkPackageReader : IArchiveReader
         MemoryStream resources
     )
     {
-        var reader = new ApkResourceFinder();
+        var reader = new ApkResourceDecoder(new NullLogger<ApkResourceDecoder>());
 
-        return reader.ProcessResourceTableAsync(resources.ToArray());
+        return reader.DecodeAsync(resources);
     }
 
     private string SelectWithXPath(XDocument document, string xpath)
@@ -115,11 +107,11 @@ public class ApkPackageReader : IArchiveReader
         return selector.ToString();
     }
 
-    private XDocument DecodeBinaryXml(MemoryStream manifest)
+    private Task<XDocument> DecodeBinaryXmlAsync(Stream manifest)
     {
-        var reader = new AndroidManifestReader(manifest.ToArray());
+        var reader = new AndroidManifestReader();
 
-        return reader.Manifest;
+        return reader.ReadAsync(manifest);
     }
 
     public bool SupportsMetaData { get; } = true;

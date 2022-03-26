@@ -1,12 +1,12 @@
 ﻿using System.Buffers.Binary;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Community.Archives.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Community.Archives.Apk;
 
-public class ApkResourceFinder
+public class ApkResourceDecoder : IApkResourceDecoder
 {
     private const short RES_STRING_POOL_TYPE = 0x0001;
     private const short RES_TABLE_TYPE = 0x0002;
@@ -19,6 +19,8 @@ public class ApkResourceFinder
     string[] keyStringPool = Array.Empty<string>();
 
     private int package_id = 0;
+
+    private ILogger<ApkResourceDecoder> _logger;
 
     //// Contains no data.
     //static byte TYPE_NULL = 0x00;
@@ -62,14 +64,19 @@ public class ApkResourceFinder
 
     Dictionary<int, List<string>> entryMap = new Dictionary<int, List<string>>();
 
-    public Task<IDictionary<string, IList<string>>> ProcessResourceTableAsync(byte[] data)
+    public ApkResourceDecoder(ILogger<ApkResourceDecoder> logger)
+    {
+        _logger = logger;
+    }
+
+    public Task<IDictionary<string, IList<string>>> DecodeAsync(byte[] data)
     {
         using MemoryStream ms = new MemoryStream(data);
 
-        return ProcessResourceTableAsync(ms);
+        return DecodeAsync(ms);
     }
 
-    public Task<IDictionary<string, IList<string>>> ProcessResourceTableAsync(Stream stream)
+    public Task<IDictionary<string, IList<string>>> DecodeAsync(Stream stream)
     {
         responseMap = new Dictionary<string, IList<string?>>();
 
@@ -122,7 +129,7 @@ public class ApkResourceFinder
                 if (actualStringPoolCount == 0)
                 {
                     // Only the first string pool is processed.
-                    Debug.WriteLine("Processing the string pool ...");
+                    _logger.LogDebug("Processing the string pool ...");
 
                     valueStringPool = await ReadStringPoolAsync(stream).ConfigureAwait(false);
                 }
@@ -132,7 +139,7 @@ public class ApkResourceFinder
             else if (header.type == RES_TABLE_PACKAGE_TYPE)
             {
                 // Process the package
-                Debug.WriteLine("Processing package {0} ...", actualPackageCount);
+                _logger.LogDebug("Processing package {0} ...", actualPackageCount);
 
                 await ExtractPackageAsync(stream, header).ConfigureAwait(false);
 
@@ -211,7 +218,7 @@ public class ApkResourceFinder
     private async Task<GeneralPoolHeader> ExtractPoolsAsync(Stream ms, PackageHeaderSuffix headerSuffix,
         long lastPosition)
     {
-        Debug.WriteLine("Type strings:");
+        _logger.LogDebug("Type strings:");
         await ms.SkipAsync<GeneralPoolHeader>().ConfigureAwait(false);
         typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
 
@@ -219,7 +226,7 @@ public class ApkResourceFinder
         await ms.SkipAsync(headerSuffix.keyStrings - (ms.Position - lastPosition))
             .ConfigureAwait(false);
 
-        Debug.WriteLine("Key strings:");
+        _logger.LogDebug("Key strings:");
         var keyStringHeader = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
         keyStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
         return keyStringHeader;
@@ -312,7 +319,7 @@ public class ApkResourceFinder
 
             await ms.ReadStructAsync<ComplexEntryItemBody>(entry.entryCount).ConfigureAwait(false);
 
-            Debug.WriteLine(
+            _logger.LogDebug(
                 $"Entry 0x{resourceId:X4}, key: {keyStringPool[entryHeader.entryKey]}, complex value, not printed."
             );
         }
@@ -333,7 +340,7 @@ public class ApkResourceFinder
         string keyStr = keyStringPool[entryHeader.entryKey];
         string? data = null;
 
-        Debug.WriteLine(
+        _logger.LogDebug(
             $"Entry 0x{idStr}, key: {keyStr}, simple value type: "
         );
 
@@ -351,14 +358,14 @@ public class ApkResourceFinder
         {
             case TYPE_STRING:
                 data = valueStringPool[entry.valueData];
-                Debug.WriteLine($", data: {data}");
+                _logger.LogDebug($", data: {data}");
                 break;
             case TYPE_REFERENCE:
                 refKeys.Add(idStr, entry.valueData);
                 break;
             default:
                 data = entry.valueData.ToString();
-                Debug.WriteLine($", data: {data}");
+                _logger.LogDebug($", data: {data}");
                 break;
         }
 
@@ -464,7 +471,7 @@ public class ApkResourceFinder
     {
         var header = await ms.ReadStructAsync<TypeSpecSuffix>().ConfigureAwait(false);
 
-        Debug.WriteLine("Processing type spec {0}", stringPool[header.id - 1]);
+        _logger.LogDebug("Processing type spec {0}", stringPool[header.id - 1]);
 
         await ms.SkipAsync<int>(header.entryCount).ConfigureAwait(false);
     }

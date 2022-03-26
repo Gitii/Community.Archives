@@ -12,10 +12,10 @@ internal struct RpmTags
     //public string[] HeaderI18nTable;
 
     [RpmTag(1000, IndexType.RPM_INT32_TYPE, 1, true)]
-    public int SignatureTagSize;
+    public int SignatureTagSize = 0;
 
     [RpmTag(1007, IndexType.RPM_INT32_TYPE, 1, false)]
-    public int SignatureTagPayloadSize;
+    public int SignatureTagPayloadSize = 0;
 
     //[RpmTag(269, IndexType.RPM_STRING_TYPE, 1, false)]
     //public string SignatureTagSha1;
@@ -51,7 +51,7 @@ internal struct RpmTags
     public string Description = String.Empty;
 
     [RpmTag(1009, IndexType.RPM_INT32_TYPE, 1, true)]
-    public int Size;
+    public int Size = 0;
 
     [RpmTag(1010, IndexType.RPM_STRING_TYPE, 1, false)]
     public string Distribution = String.Empty;
@@ -81,7 +81,7 @@ internal struct RpmTags
     public string SourceRpm = String.Empty;
 
     [RpmTag(1046, IndexType.RPM_INT32_TYPE, 1, false)]
-    public int ArchiveSize;
+    public int ArchiveSize = 0;
 
     [RpmTag(1064, IndexType.RPM_STRING_TYPE, 1, false)]
     public string RpmVersion = String.Empty;
@@ -100,6 +100,8 @@ internal struct RpmTags
 
     [RpmTag(1126, IndexType.RPM_STRING_TYPE, 1, true)]
     public string PayloadFlags = String.Empty;
+
+    public RpmTags() { }
 
     public IReadOnlyDictionary<string, string> GetFields()
     {
