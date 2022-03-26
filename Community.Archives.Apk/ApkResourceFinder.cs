@@ -196,11 +196,7 @@ public class ApkResourceFinder
             if (h.type == RES_TABLE_TYPE_SPEC_TYPE)
             {
                 // Process the string pool
-                byte[] buffer = new byte[h.size];
-                ms.Seek(pos, SeekOrigin.Begin);
-                buffer = await ms.ReadBlockAsync(h.size).ConfigureAwait(false);
-
-                ExtractTypeSpec(buffer);
+                await ExtractTypeSpecAsync(ms, typeStringPool).ConfigureAwait(false);
 
                 typeSpecCount++;
             }
@@ -386,10 +382,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                                + resource_id.ToString("X4")
-                                + ", key: "
-                                + keyStringPool[entry_key]
-                                + ", complex value, not printed."
+                            + resource_id.ToString("X4")
+                            + ", key: "
+                            + keyStringPool[entry_key]
+                            + ", complex value, not printed."
                         );
                     }
                 }
@@ -512,30 +508,12 @@ public class ApkResourceFinder
         return u8len;
     }
 
-    private void ExtractTypeSpec(byte[] data)
+    private async Task ExtractTypeSpecAsync(Stream ms, string[] stringPool)
     {
-        using (MemoryStream ms = new MemoryStream(data))
-        {
-            using (BinaryReader br = new BinaryReader(ms))
-            {
-                short type = br.Readt16();
-                short headerSize = br.Readt16();
-                int size = br.Readt32();
-                byte id = br.ReadByte();
-                byte res0 = br.ReadByte();
-                short res1 = br.Readt16();
-                int entryCount = br.Readt32();
+        var header = await ms.ReadStructAsync<TypeSpecSuffix>().ConfigureAwait(false);
 
-                Debug.WriteLine("Processing type spec {0}", typeStringPool[id - 1]);
+        Debug.WriteLine("Processing type spec {0}", stringPool[header.id - 1]);
 
-                int[] flags = new int[entryCount];
-                for (int i = 0; i < entryCount; ++i)
-                {
-                    flags[i] = br.Readt32();
-                }
-
-                return;
-            }
-        }
+        await ms.SkipAsync<int>(header.entryCount).ConfigureAwait(false);
     }
 }
