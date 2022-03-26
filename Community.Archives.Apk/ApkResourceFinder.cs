@@ -140,11 +140,7 @@ public class ApkResourceFinder
                 // Process the package
                 Debug.WriteLine("Processing package {0} ...", actualPackageCount);
 
-                byte[] buffer = new byte[header.size];
-                binaryReader.BaseStream.Seek(pos, SeekOrigin.Begin);
-                buffer = binaryReader.ReadBytes(header.size);
-                //br.BaseStream.Seek(lastPosition, SeekOrigin.Begin);
-                await ExtractPackageAsync(buffer).ConfigureAwait(false);
+                await ExtractPackageAsync(binaryReader.BaseStream, header).ConfigureAwait(false);
 
                 actualPackageCount++;
             }
@@ -159,30 +155,29 @@ public class ApkResourceFinder
         return (actualStringPoolCount, actualPackageCount);
     }
 
-    private async Task ExtractPackageAsync(byte[] data)
+    private async Task ExtractPackageAsync(Stream ms, GeneralPoolHeader header)
     {
-        long lastPosition = 0;
-        MemoryStream ms = new MemoryStream(data);
-        await using var _ = ms.ConfigureAwait(false);
-        var header = await ms.ReadStructAsync<PackageHeader>().ConfigureAwait(false);
+        long lastPosition = ms.Position - Marshal.SizeOf<GeneralPoolHeader>();
+        var headerSuffix = await ms.ReadStructAsync<PackageHeaderSuffix>().ConfigureAwait(false);
 
-        package_id = header.id;
+        package_id = headerSuffix.id;
 
-        if (header.typeStrings != header.headerSize)
+        if (headerSuffix.typeStrings != header.headerSize)
         {
             throw new Exception(
                 "TypeStrings must immediately follow the package structure header."
             );
         }
 
-        await ms.SkipAsync(header.typeStrings - ms.Position).ConfigureAwait(false); // skip rest of header
+        await ms.SkipAsync(headerSuffix.typeStrings - (ms.Position - lastPosition))
+            .ConfigureAwait(false); // skip rest of header
 
         Debug.WriteLine("Type strings:");
         await ms.SkipAsync<GeneralPoolHeader>().ConfigureAwait(false);
         typeStringPool = await ReadStringPoolAsync(ms).ConfigureAwait(false);
 
         // goto next pool
-        await ms.SkipAsync(header.keyStrings - ms.Position).ConfigureAwait(false);
+        await ms.SkipAsync(headerSuffix.keyStrings - (ms.Position - lastPosition)).ConfigureAwait(false);
 
         Debug.WriteLine("Key strings:");
         var keyStringHeader = await ms.ReadStructAsync<GeneralPoolHeader>().ConfigureAwait(false);
@@ -193,7 +188,7 @@ public class ApkResourceFinder
         int typeSpecCount = 0;
         int typeCount = 0;
 
-        await ms.SkipAsync((header.keyStrings + keyStringHeader.size) - ms.Position)
+        await ms.SkipAsync((headerSuffix.keyStrings + keyStringHeader.size) - (ms.Position - lastPosition))
             .ConfigureAwait(false);
 
         while (true)
@@ -402,10 +397,10 @@ public class ApkResourceFinder
 
                         Debug.WriteLine(
                             "Entry 0x"
-                                + resource_id.ToString("X4")
-                                + ", key: "
-                                + keyStringPool[entry_key]
-                                + ", complex value, not printed."
+                            + resource_id.ToString("X4")
+                            + ", key: "
+                            + keyStringPool[entry_key]
+                            + ", complex value, not printed."
                         );
                     }
                 }
