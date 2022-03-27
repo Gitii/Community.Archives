@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -156,6 +157,7 @@ public class ApkPackageReader : IArchiveReader
         return decoder.DecodeAsync(resources);
     }
 
+    [ExcludeFromCodeCoverage]
     private string SelectWithXPath(
         XDocument document,
         string xpath,
@@ -165,6 +167,7 @@ public class ApkPackageReader : IArchiveReader
         return SelectAllWithXPath(document, xpath, resources).FirstOrDefault() ?? String.Empty;
     }
 
+    [ExcludeFromCodeCoverage]
     private IEnumerable<string> SelectAllWithXPath(
         XDocument document,
         string xpath,
@@ -180,6 +183,14 @@ public class ApkPackageReader : IArchiveReader
                 if (selectedElement is XAttribute attribute)
                 {
                     foreach (var value in DereferenceIfUnique(attribute.Value))
+                    {
+                        yield return value;
+                    }
+                }
+
+                if (selectedElement is XElement element)
+                {
+                    foreach (var value in DereferenceIfUnique(element.Value))
                     {
                         yield return value;
                     }
@@ -207,7 +218,7 @@ public class ApkPackageReader : IArchiveReader
                     }
                     else
                     {
-                        yield return values.FirstOrDefault()!;
+                        yield return values.FirstOrDefault() ?? valueOrReference;
                     }
                 }
             }
