@@ -41,6 +41,12 @@
     <None Update="Fixtures\app-sample.apk">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Fixtures\app-sample.no-manifest.apk">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\app-sample.no-resources.apk">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Fixtures\resources.arsc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

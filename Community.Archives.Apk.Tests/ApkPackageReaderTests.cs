@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Community.Archives.Core;
 using Community.Archives.Core.Tests;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Community.Archives.Apk.Tests;
@@ -31,5 +32,21 @@ public class ApkPackageReaderTests : ArchiveReaderTests<ApkPackageReader>
                 },
             }
         );
+    }
+
+    [TestCase("Fixtures/app-sample.no-manifest.apk", "The apk doesn't contain a manifest.")]
+    [TestCase("Fixtures/app-sample.no-resources.apk", "The apk doesn't contain a resource file.")]
+    public async Task GetMetaData_ShouldFailWhenApkMissesFilesAsync(
+        string fixtureFileName,
+        string exceptionMessage
+    )
+    {
+        var actualResourcesStream = new StreamFixtureFile(fixtureFileName);
+
+        IArchiveReader reader = new ApkPackageReader();
+
+        var call = () => reader.GetMetaDataAsync(actualResourcesStream.Content);
+
+        (await call.Should().ThrowAsync<Exception>()).WithMessage(exceptionMessage);
     }
 }
