@@ -7,7 +7,7 @@ namespace Community.Archives.Apk;
 /// Code coming from:
 /// https://stackoverflow.com/questions/18997163/how-can-i-read-the-manifest-of-an-android-apk-file-using-c-sharp-net/22314629
 /// </remarks>
-public class AndroidManifestReader : IAndroidManifestReader
+public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
 {
     // Parses the 'compressed' binary form of Android XML docs
     // such as for AndroidManifest.binaryXml in .apk files
@@ -21,13 +21,13 @@ public class AndroidManifestReader : IAndroidManifestReader
 
     private byte[] _xml = Array.Empty<byte>();
 
-    private XDocument? _manifest;
+    private XDocument? _document;
 
-    /// <summary>Returns the uncompressed Xml Manifest or <c>null</c> if <see cref="ReadAsync"/> or <see cref="Read"/> hasn't been called, yet.</summary>
-    public XDocument? Manifest => _manifest;
+    /// <summary>Returns the uncompressed Xml or <c>null</c> if <see cref="ReadAsync"/> or <see cref="Read"/> hasn't been called, yet.</summary>
+    public XDocument? Document => _document;
 
     /// <summary>
-    /// Reads all bytes from the passed in stream, reads the document from the data and returns the uncompressed xml manifest.
+    /// Reads all bytes from the passed in stream, reads the document from the data and returns the uncompressed xml.
     /// </summary>
     /// <param name="stream">The input stream</param>
     /// <returns>The uncompressed xml document.</returns>
@@ -47,7 +47,7 @@ public class AndroidManifestReader : IAndroidManifestReader
     }
 
     /// <summary>
-    /// Reads the document from the data and returns the uncompressed xml manifest.
+    /// Reads the document from the data and returns the uncompressed xml.
     /// </summary>
     /// <param name="data">The data from which the document is being read.</param>
     /// <returns>The uncompressed xml document.</returns>
@@ -55,10 +55,10 @@ public class AndroidManifestReader : IAndroidManifestReader
     {
         _xml = data;
 
-        return (_manifest = ReadManifest());
+        return (_document = ReadDocument());
     }
 
-    private XDocument ReadManifest()
+    private XDocument ReadDocument()
     {
         var result = new XDocument();
         result.Add(new XElement("root"));
@@ -151,7 +151,9 @@ public class AndroidManifestReader : IAndroidManifestReader
         var attrValue =
             attributeValueStringIndex >= 0
                 ? RetrieveFromStringTable(attributeValueStringIndex)
-                : $"@{attributeResourceId}";
+                : attributeResourceId.ToString().Length == 10
+                    ? $"@{attributeResourceId:X4}"
+                    : attributeResourceId.ToString();
 
         attribute = new XAttribute(attrName, attrValue);
         return 20;

@@ -3,10 +3,10 @@
 namespace Community.Archives.Apk;
 
 /// <summary> Unpacks and reads data from a compressed apk manifest file. </summary>
-public interface IAndroidManifestReader
+public interface IAndroidBinaryXmlReader
 {
-    /// <summary>Returns the uncompressed Xml Manifest or <c>null</c> if <see cref="AndroidManifestReader.ReadAsync"/> or <see cref="AndroidManifestReader.Read"/> hasn't been called, yet.</summary>
-    XDocument? Manifest { get; }
+    /// <summary>Returns the uncompressed Xml Manifest or <c>null</c> if <see cref="AndroidBinaryXmlReader.ReadAsync"/> or <see cref="AndroidBinaryXmlReader.Read"/> hasn't been called, yet.</summary>
+    XDocument? Document { get; }
 
     /// <summary>
     /// Reads all bytes from the passed in stream, reads the document from the data and returns the uncompressed xml manifest.

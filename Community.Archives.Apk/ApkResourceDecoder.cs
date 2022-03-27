@@ -69,21 +69,21 @@ public class ApkResourceDecoder : IApkResourceDecoder
         _logger = logger;
     }
 
-    public Task<IDictionary<string, IList<string>>> DecodeAsync(byte[] data)
+    public Task<IDictionary<string, IList<string?>>> DecodeAsync(byte[] data)
     {
         using MemoryStream ms = new MemoryStream(data);
 
         return DecodeAsync(ms);
     }
 
-    public Task<IDictionary<string, IList<string>>> DecodeAsync(Stream stream)
+    public Task<IDictionary<string, IList<string?>>> DecodeAsync(Stream stream)
     {
         _responseMap = new Dictionary<string, IList<string?>>();
 
         return ExtractDataAsync(stream);
     }
 
-    private async Task<IDictionary<string, IList<string>>> ExtractDataAsync(Stream stream)
+    private async Task<IDictionary<string, IList<string?>>> ExtractDataAsync(Stream stream)
     {
         var header = await stream.ReadStructAsync<ResourceTableHeader>().ConfigureAwait(false);
 
@@ -261,8 +261,8 @@ public class ApkResourceDecoder : IApkResourceDecoder
         // Skip the config data
         await ms.SkipAsync(
                 header.headerSize
-                    - Marshal.SizeOf<TypeSuffix>()
-                    - Marshal.SizeOf<GeneralPoolHeader>()
+                - Marshal.SizeOf<TypeSuffix>()
+                - Marshal.SizeOf<GeneralPoolHeader>()
             )
             .ConfigureAwait(false);
 

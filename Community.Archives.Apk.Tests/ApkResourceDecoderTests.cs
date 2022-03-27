@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 namespace Community.Archives.Apk.Tests;
 
-public class ApkResourceFinderTests
+public class ApkResourceDecoderTests
 {
     [Test]
     public async Task Decode_ShouldEqualKnownValuesAsync()
@@ -21,9 +21,7 @@ public class ApkResourceFinderTests
         var expectedResourcesStream = new StreamFixtureFile("Fixtures/resources.json");
 
         var reader = new ApkResourceDecoder(new NullLogger<ApkResourceDecoder>());
-        var actualEntries = await reader.DecodeAsync(
-            actualResourcesStream.Content.ToArray()
-        );
+        var actualEntries = await reader.DecodeAsync(actualResourcesStream.Content.ToArray());
 
         var expectedEntries = DeserializeFromStream<IDictionary<string, IList<string>>>(
             expectedResourcesStream.Content
