@@ -52,8 +52,11 @@ public class ApkPackageReader : IArchiveReader
         Stream resources = Stream.Null;
 
         await foreach (
-            var entry in GetFileEntriesAsync(stream, $"^{ANDROID_MANIFEST_FILE_NAME}$",
-                    $"^{ANROID_RESOURCE_FILE_NAME}$")
+            var entry in GetFileEntriesAsync(
+                    stream,
+                    $"^{ANDROID_MANIFEST_FILE_NAME}$",
+                    $"^{ANROID_RESOURCE_FILE_NAME}$"
+                )
                 .ConfigureAwait(false)
         )
         {
@@ -81,12 +84,33 @@ public class ApkPackageReader : IArchiveReader
         var decodedResources = await DecodeResourcesAsync(resources).ConfigureAwait(false);
 
         var package = SelectWithXPath(decodedManifest, "/*/manifest[1]/@package", decodedResources);
-        var versionName = SelectWithXPath(decodedManifest, "/*/manifest[1]/@versionName", decodedResources);
-        var description = SelectWithXPath(decodedManifest, "/*/manifest[1]/application[1]/@label", decodedResources);
-        var versionCode = SelectWithXPath(decodedManifest, "/*/manifest[1]/@versionCode", decodedResources);
-        var perms = String.Join(MANIFEST_ARRAY_SEPARATOR,
-            SelectAllWithXPath(decodedManifest, "/*/manifest[1]/uses-permission/@name", decodedResources));
-        var icons = String.Join(MANIFEST_ARRAY_SEPARATOR, GetAllIconFileNames(decodedManifest, decodedResources));
+        var versionName = SelectWithXPath(
+            decodedManifest,
+            "/*/manifest[1]/@versionName",
+            decodedResources
+        );
+        var description = SelectWithXPath(
+            decodedManifest,
+            "/*/manifest[1]/application[1]/@label",
+            decodedResources
+        );
+        var versionCode = SelectWithXPath(
+            decodedManifest,
+            "/*/manifest[1]/@versionCode",
+            decodedResources
+        );
+        var perms = String.Join(
+            MANIFEST_ARRAY_SEPARATOR,
+            SelectAllWithXPath(
+                decodedManifest,
+                "/*/manifest[1]/uses-permission/@name",
+                decodedResources
+            )
+        );
+        var icons = String.Join(
+            MANIFEST_ARRAY_SEPARATOR,
+            GetAllIconFileNames(decodedManifest, decodedResources)
+        );
 
         return new IArchiveReader.ArchiveMetaData()
         {
@@ -103,10 +127,17 @@ public class ApkPackageReader : IArchiveReader
         };
     }
 
-    private IEnumerable<string> GetAllIconFileNames(XDocument decodedManifest,
-        IDictionary<string, IList<string?>> decodedResources)
+    private IEnumerable<string> GetAllIconFileNames(
+        XDocument decodedManifest,
+        IDictionary<string, IList<string?>> decodedResources
+    )
     {
-        return SelectAllWithXPath(decodedManifest, "/*/manifest[1]/application[1]/@icon", decodedResources, true)
+        return SelectAllWithXPath(
+                decodedManifest,
+                "/*/manifest[1]/application[1]/@icon",
+                decodedResources,
+                true
+            )
             .Where((item) => !item.EndsWith(".xml"));
     }
 
@@ -117,22 +148,21 @@ public class ApkPackageReader : IArchiveReader
         return decoder.DecodeAsync(resources);
     }
 
-    private Task<IDictionary<string, IList<string?>>> DecodeBinaryResourcesAsync(
-        MemoryStream resources
+    private string SelectWithXPath(
+        XDocument document,
+        string xpath,
+        IDictionary<string, IList<string?>> resources
     )
-    {
-        var reader = new ApkResourceDecoder(new NullLogger<ApkResourceDecoder>());
-
-        return reader.DecodeAsync(resources);
-    }
-
-    private string SelectWithXPath(XDocument document, string xpath, IDictionary<string, IList<string?>> resources)
     {
         return SelectAllWithXPath(document, xpath, resources).FirstOrDefault() ?? String.Empty;
     }
 
-    private IEnumerable<string> SelectAllWithXPath(XDocument document, string xpath,
-        IDictionary<string, IList<string?>> resources, bool all = false)
+    private IEnumerable<string> SelectAllWithXPath(
+        XDocument document,
+        string xpath,
+        IDictionary<string, IList<string?>> resources,
+        bool all = false
+    )
     {
         var selector = document.XPathEvaluate(xpath);
         if (selector is IEnumerable selectedElements)

@@ -84,6 +84,19 @@ public class StreamMarshallingExtensionsTests
     }
 
     [Test]
+    public async Task Test_SkipAsync_ShouldFailWhenNegativeNumberOfBytes()
+    {
+        var stream = new MemoryStream(new byte[30], false);
+        stream.Position = 11;
+
+        var call = () => stream.SkipAsync(-1);
+
+        var result = await call.Should().ThrowAsync<Exception>();
+
+        result.WithMessage("Cannot seek backward");
+    }
+
+    [Test]
     public async Task Test_SkipTAsync_ShouldSeekToSkip()
     {
         var stream = new MemoryStream(new byte[30], false);
@@ -184,6 +197,33 @@ public class StreamMarshallingExtensionsTests
 
         var result = await valueTask.Should().ThrowAsync<Exception>();
         result.WithMessage($"Could not read 2 bytes from stream");
+    }
+
+    [Test]
+    public async Task Test_ReadBlockAsync_ShouldReadStructs()
+    {
+        var buffer = new byte[] { 1, 2, 3, 4 };
+        var stream = new MemoryStream(buffer);
+
+        var value = await stream.ReadBlockAsync<TwoByteStruct>(2);
+
+        stream.Position.Should().Be(4);
+        value[0].Field1.Should().Be(1);
+        value[0].Field2.Should().Be(2);
+        value[1].Field1.Should().Be(3);
+        value[1].Field2.Should().Be(4);
+    }
+
+    [Test]
+    public async Task Test_ReadBlockAsync_ShouldFailNotEnoughData2()
+    {
+        var buffer = new byte[] { 1 };
+        var stream = new MemoryStream(buffer);
+
+        var valueTask = () => stream.ReadBlockAsync<TwoByteStruct>(1);
+
+        var result = await valueTask.Should().ThrowAsync<Exception>();
+        result.WithMessage($"Failed to read all data from stream");
     }
 
     [Test]
