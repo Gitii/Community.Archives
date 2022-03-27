@@ -63,7 +63,8 @@ public class ArArchiveReader : IArchiveReader
                 // match: read bytes
                 yield return new ArchiveEntry()
                 {
-                    Content = await stream.ReadStreamAsync(fileSize).ConfigureAwait(false), Name = filename,
+                    Content = await stream.ReadStreamAsync(fileSize).ConfigureAwait(false),
+                    Name = filename,
                 };
             }
             else

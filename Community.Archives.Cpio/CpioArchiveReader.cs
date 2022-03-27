@@ -29,8 +29,7 @@ public class CpioArchiveReader : IArchiveReader
             if (fileName != "TRAILER!!!")
             {
                 var mode = header.GetFileMode();
-                await stream.AlignToBoundaryAsync(4)
-                    .ConfigureAwait(false); // 0-3 bytes as needed to align the file stream to a 4 byte boundary.
+                await stream.AlignToBoundaryAsync(4).ConfigureAwait(false); // 0-3 bytes as needed to align the file stream to a 4 byte boundary.
 
                 var fileSize = header.c_filesize.DecodeStringAsLong(true);
 
@@ -38,21 +37,16 @@ public class CpioArchiveReader : IArchiveReader
                 {
                     yield return new ArchiveEntry()
                     {
-                        Content = await stream
-                            .CopyRangeToAsync(fileSize)
-                            .ConfigureAwait(false),
+                        Content = await stream.CopyRangeToAsync(fileSize).ConfigureAwait(false),
                         Name = fileName
                     };
                 }
                 else
                 {
-                    await stream
-                        .SkipAsync(fileSize)
-                        .ConfigureAwait(false);
+                    await stream.SkipAsync(fileSize).ConfigureAwait(false);
                 }
 
-                await stream.AlignToBoundaryAsync(4)
-                    .ConfigureAwait(false); // 0-3 bytes as needed to align the file stream to a 4 byte boundary.
+                await stream.AlignToBoundaryAsync(4).ConfigureAwait(false); // 0-3 bytes as needed to align the file stream to a 4 byte boundary.
             }
             else
             {

@@ -1,0 +1,83 @@
+<root>
+  <manifest versionCode="93" versionName="1.48.1" installLocation="0" compileSdkVersion="32" compileSdkVersionCodename="12" package="de.markusfisch.android.binaryeye" platformBuildVersionCode="32" platformBuildVersionName="12">
+    <uses-sdk minSdkVersion="9" targetSdkVersion="32" />
+    <supports-screens largeScreens="-1" xlargeScreens="-1" />
+    <uses-permission name="android.permission.ACCESS_FINE_LOCATION" maxSdkVersion="28" />
+    <uses-permission name="android.permission.CAMERA" />
+    <uses-permission name="android.permission.INTERNET" />
+    <uses-permission name="android.permission.VIBRATE" />
+    <uses-permission name="android.permission.WRITE_EXTERNAL_STORAGE" maxSdkVersion="28" />
+    <uses-permission name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission name="android.permission.ACCESS_WIFI_STATE" maxSdkVersion="28" />
+    <uses-feature name="android.hardware.camera" />
+    <uses-feature name="android.hardware.camera.autofocus" />
+    <queries>
+      <intent>
+        <action name="android.intent.action.VIEW" />
+        <data scheme="https" />
+      </intent>
+      <intent>
+        <action name="android.intent.action.VIEW" />
+        <data scheme="http" />
+      </intent>
+    </queries>
+    <meta-data name="android.support.VERSION" value="25.3.1" />
+    <application theme="@7F100005" label="@7F0F0021" icon="@7F0D0000" name="de.markusfisch.android.binaryeye.app.BinaryEyeApp" allowBackup="-1" supportsRtl="-1" fullBackupContent="@7F120000" usesCleartextTraffic="-1" resizeableActivity="-1" dataExtractionRules="@7F120001">
+      <activity theme="@7F1000DD" name="de.markusfisch.android.binaryeye.activity.SplashActivity" exported="-1">
+        <intent-filter>
+          <action name="android.intent.action.MAIN" />
+          <category name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        <meta-data name="android.app.shortcuts" resource="@7F120005" />
+      </activity>
+      <activity label="@7F0F0088" name="de.markusfisch.android.binaryeye.activity.CameraActivity" exported="-1">
+        <intent-filter label="@7F0F0036">
+          <action name="android.intent.action.SEND" />
+          <category name="android.intent.category.DEFAULT" />
+          <data mimeType="text/plain" />
+        </intent-filter>
+        <intent-filter>
+          <action name="com.google.zxing.client.android.SCAN" />
+          <category name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action name="android.intent.action.VIEW" />
+          <category name="android.intent.category.DEFAULT" />
+          <category name="android.intent.category.BROWSABLE" />
+          <data host="markusfisch.de" />
+          <data pathPrefix="/BinaryEye" />
+          <data scheme="http" />
+          <data scheme="https" />
+        </intent-filter>
+        <intent-filter>
+          <action name="android.intent.action.VIEW" />
+          <category name="android.intent.category.DEFAULT" />
+          <category name="android.intent.category.BROWSABLE" />
+          <data scheme="binaryeye" host="scan" />
+        </intent-filter>
+      </activity>
+      <activity label="@7F0F0075" name="de.markusfisch.android.binaryeye.activity.PickActivity" exported="-1">
+        <intent-filter label="@7F0F0042">
+          <action name="android.intent.action.SEND" />
+          <category name="android.intent.category.DEFAULT" />
+          <data mimeType="image/*" />
+        </intent-filter>
+        <intent-filter label="@7F0F0042">
+          <action name="android.intent.action.VIEW" />
+          <category name="android.intent.category.DEFAULT" />
+          <data mimeType="image/*" />
+        </intent-filter>
+      </activity>
+      <activity name="de.markusfisch.android.binaryeye.activity.MainActivity" exported="-1" />
+      <service label="@7F0F0088" icon="@7F080079" name="de.markusfisch.android.binaryeye.service.ScanTileService" permission="android.permission.BIND_QUICK_SETTINGS_TILE" exported="-1">
+        <intent-filter>
+          <action name="android.service.quicksettings.action.QS_TILE" />
+        </intent-filter>
+      </service>
+      <provider name="android.support.v4.content.FileProvider" exported="0" authorities="de.markusfisch.android.binaryeye.provider" grantUriPermissions="-1">
+        <meta-data name="android.support.FILE_PROVIDER_PATHS" resource="@7F120002" />
+      </provider>
+      <meta-data name="android.app.searchable" resource="@7F120004" />
+    </application>
+  </manifest>
+</root>

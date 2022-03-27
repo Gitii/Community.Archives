@@ -19,12 +19,16 @@ public class RpmPackageNameParserTests
         reader.IsValid(name!).Should().Be(isValid);
     }
 
-    public static object[] TryParseTestCases = new[]
+    private static object[] TryParseTestCases = new[]
     {
         new object?[] { "a-b-c", new RpmPackageName("a", "b", "c") },
-        new object?[] { "a-b-c-d", new RpmPackageName("a", "b", "c", "d") }, new object?[] { "a-b", null },
-        new object?[] { "", null }, new object?[] { null, null }, new object?[] { "a-b-c-d-e", null },
-        new object?[] { "a----", null }, new object?[] { "a", null },
+        new object?[] { "a-b-c-d", new RpmPackageName("a", "b", "c", "d") },
+        new object?[] { "a-b", null },
+        new object?[] { "", null },
+        new object?[] { null, null },
+        new object?[] { "a-b-c-d-e", null },
+        new object?[] { "a----", null },
+        new object?[] { "a", null },
     };
 
     [TestCaseSource(nameof(TryParseTestCases))]

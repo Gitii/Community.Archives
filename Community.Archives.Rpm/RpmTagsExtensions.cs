@@ -24,7 +24,6 @@ internal static class RpmTagsExtensions
             {
                 var strValue = index.Value.GetStrings(data);
                 fieldInfo.SetValueDirect(__makeref(tags), strValue[0]);
-
                 continue;
             }
 

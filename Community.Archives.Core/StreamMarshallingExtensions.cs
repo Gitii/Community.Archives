@@ -76,6 +76,22 @@ public static class StreamMarshallingExtensions
         return buffer;
     }
 
+    public static Task<T[]> ReadBlockAsync<T>(this Stream stream, long length) where T : unmanaged
+    {
+        var buffer = new T[length];
+
+        var byteBuffer = MemoryMarshal.AsBytes(buffer.AsSpan());
+
+        var readBytes = stream.Read(byteBuffer);
+
+        if (readBytes != byteBuffer.Length)
+        {
+            throw new Exception("Failed to read all data from stream");
+        }
+
+        return Task.FromResult(buffer);
+    }
+
     public static async Task<T[]> ReadStructAsync<T>(this Stream stream, int countOfStruct)
         where T : struct
     {
@@ -88,8 +104,7 @@ public static class StreamMarshallingExtensions
         return structs;
     }
 
-    public static Task SkipAsync<T>(this Stream stream, int countOfStruct)
-        where T : struct
+    public static Task SkipAsync<T>(this Stream stream, int countOfStruct) where T : struct
     {
         var size = Marshal.SizeOf<T>();
 
@@ -98,6 +113,11 @@ public static class StreamMarshallingExtensions
 
     public static async Task SkipAsync(this Stream stream, long numberOfBytes)
     {
+        if (numberOfBytes < 0)
+        {
+            throw new Exception("Cannot seek backward");
+        }
+
         if (stream.CanSeek)
         {
             stream.Seek(numberOfBytes, SeekOrigin.Current);
@@ -158,10 +178,7 @@ public static class StreamMarshallingExtensions
         return Encoding.ASCII.GetString(stringStream.ToArray());
     }
 
-    public static Task<string> ReadAnsiStringAsync(
-        this Stream stream,
-        int expectedMaxLength = 20
-    )
+    public static Task<string> ReadAnsiStringAsync(this Stream stream, int expectedMaxLength = 20)
     {
         byte[] buffer = new byte[expectedMaxLength];
         int pointer = 0;

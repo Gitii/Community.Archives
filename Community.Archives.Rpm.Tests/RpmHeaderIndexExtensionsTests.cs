@@ -23,9 +23,11 @@ public class RpmHeaderIndexExtensionsTests
 
         var call = () => index.AssertType(IndexType.RPM_I18NSTRING_TYPE);
 
-        call.Should().Throw<Exception>()
+        call.Should()
+            .Throw<Exception>()
             .WithMessage(
-                $"Expected index type to be {IndexType.RPM_I18NSTRING_TYPE} but it's {IndexType.RPM_BIN_TYPE}");
+                $"Expected index type to be {IndexType.RPM_I18NSTRING_TYPE} but it's {IndexType.RPM_BIN_TYPE}"
+            );
     }
 
     [Test]

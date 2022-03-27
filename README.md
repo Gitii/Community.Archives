@@ -14,6 +14,9 @@ A collection of libraries that support fast and efficient forward-only reading o
 | Cpio   | [Get `Community.Archives.Cpio` on nuget](https://www.nuget.org/packages/Community.Archives.Cpio) | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Cpio) |
 | Rpm    | [Get `Community.Archives.Rpm` on nuget](https://www.nuget.org/packages/Community.Archives.Rpm)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Rpm)  |
 | Tar    | [Get `Community.Archives.Tar` on nuget](https://www.nuget.org/packages/Community.Archives.Tar)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Tar)  |
+| Apk    | [Get `Community.Archives.Apk` on nuget](https://www.nuget.org/packages/Community.Archives.Apk)  | [Get started](https://github.com/Gitii/Community.Archives/tree/main/Community.Archives.Apk)  |
+
+
 
 ## Supported frameworks
 
