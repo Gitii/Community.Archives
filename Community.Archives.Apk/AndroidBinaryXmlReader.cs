@@ -64,7 +64,7 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
         result.Add(new XElement("root"));
 
         var tagStack = new Stack<XElement>();
-        tagStack.Push(result.Root);
+        tagStack.Push(result.Root!);
 
         var tagOffset = FindStartOfTags();
         while (tagOffset < _xml.Length)
@@ -85,7 +85,7 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
                 case EndDocTag:
                     goto manifest_read;
                 default:
-                    goto manifest_read;
+                    throw new Exception($"Invalid tag code: {tagCode}");
             }
         }
 
@@ -164,8 +164,8 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
         var tagName = ReadTagName(tagOffset);
         // Skip over 6 words of endTag data
         return tagName == expectedTagName
-            ? 6 * 4
-            : throw new InvalidOperationException(
+          ? 6 * 4
+          : throw new InvalidOperationException(
                 $"Malformed XML: expecting {expectedTagName} but found {tagName}"
             );
     }
@@ -192,11 +192,11 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
     /// offset strOff.  This offset points to the 16 bit string length, which 
     /// is followed by that number of 16 bit (Unicode) chars. </summary>
     /// <returns></returns>
-    private string RetrieveFromStringTable(int strInd)
+    private string? RetrieveFromStringTable(int strInd)
     {
         if (strInd < 0)
         {
-            return null;
+            throw new Exception("Invalid string index: Must not be negative");
         }
 
         // StringTable, each string is represented with a 16 bit little endian

@@ -92,21 +92,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
             throw new Exception("No RES_TABLE_TYPE found!");
         }
 
-        var (realStringPoolCount, realPackageCount) = await ExtractPoolsAndPackagesAsync(
-                stream,
-                header.packageCount
-            )
-            .ConfigureAwait(false);
-
-        if (realStringPoolCount != 1)
-        {
-            throw new Exception("More than 1 string pool found!");
-        }
-
-        if (realPackageCount != header.packageCount)
-        {
-            throw new Exception("Real package count not equals the declared count.");
-        }
+        await ExtractPoolsAndPackagesAsync(stream, header.packageCount).ConfigureAwait(false);
 
         return _responseMap;
     }
@@ -261,8 +247,8 @@ public class ApkResourceDecoder : IApkResourceDecoder
         // Skip the config data
         await ms.SkipAsync(
                 header.headerSize
-                - Marshal.SizeOf<TypeSuffix>()
-                - Marshal.SizeOf<GeneralPoolHeader>()
+                    - Marshal.SizeOf<TypeSuffix>()
+                    - Marshal.SizeOf<GeneralPoolHeader>()
             )
             .ConfigureAwait(false);
 
@@ -429,7 +415,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
         }
         else // UTF_16
         {
-            var lengthOfUtf16String = ReadUtf816StringLength(ms);
+            var lengthOfUtf16String = ReadUtf16StringLength(ms);
 
             if (lengthOfUtf16String > 0)
             {
@@ -442,13 +428,12 @@ public class ApkResourceDecoder : IApkResourceDecoder
         return newString;
     }
 
-    private static int ReadUtf816StringLength(Stream ms)
+    private static int ReadUtf16StringLength(Stream ms)
     {
         int u16Len = ReadUInt16();
         if ((u16Len & 0x8000) != 0)
         {
-            // larger than 32768
-            u16Len = ((u16Len & 0x7FFF) << 16) + ReadUInt16();
+            throw new Exception("Length of Utf16 string is supposed to be >32768.");
         }
 
         return u16Len;

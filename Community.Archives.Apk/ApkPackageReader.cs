@@ -86,8 +86,10 @@ public class ApkPackageReader : IArchiveReader
         return ExtractMetaData(decodedManifest, decodedResources);
     }
 
-    private IArchiveReader.ArchiveMetaData ExtractMetaData(XDocument decodedManifest,
-        IDictionary<string, IList<string?>> decodedResources)
+    private IArchiveReader.ArchiveMetaData ExtractMetaData(
+        XDocument decodedManifest,
+        IDictionary<string, IList<string?>> decodedResources
+    )
     {
         var package = SelectWithXPath(decodedManifest, "/*/manifest[1]/@package", decodedResources);
         var versionName = SelectWithXPath(
@@ -182,14 +184,6 @@ public class ApkPackageReader : IArchiveReader
                         yield return value;
                     }
                 }
-
-                if (selectedElement is XElement element)
-                {
-                    foreach (var value in DereferenceIfUnique(element.Value))
-                    {
-                        yield return value;
-                    }
-                }
             }
         }
 
@@ -208,17 +202,13 @@ public class ApkPackageReader : IArchiveReader
                     {
                         foreach (var value in values)
                         {
-                            yield return value;
+                            yield return value!;
                         }
                     }
                     else
                     {
-                        yield return values.FirstOrDefault() ?? valueOrReference;
+                        yield return values.FirstOrDefault()!;
                     }
-                }
-                else
-                {
-                    yield return valueOrReference;
                 }
             }
         }

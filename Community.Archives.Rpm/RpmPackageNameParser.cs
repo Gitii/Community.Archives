@@ -43,7 +43,10 @@ public class RpmPackageNameParser
 
         packageName = new RpmPackageName()
         {
-            Name = parts[0], Version = parts[1], Release = parts[2], Architecture = parts.Length == 4 ? parts[3] : null,
+            Name = parts[0],
+            Version = parts[1],
+            Release = parts[2],
+            Architecture = parts.Length == 4 ? parts[3] : null,
         };
         return true;
     }

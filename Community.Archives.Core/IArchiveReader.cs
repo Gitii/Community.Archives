@@ -29,10 +29,10 @@ public interface IArchiveReader
         public bool Equals(ArchiveMetaData other)
         {
             return Package == other.Package
-                   && Version == other.Version
-                   && Architecture == other.Architecture
-                   && Description == other.Description
-                   && AllFields.AreEqual(other.AllFields);
+                && Version == other.Version
+                && Architecture == other.Architecture
+                && Description == other.Description
+                && AllFields.AreEqual(other.AllFields);
         }
 
         public override int GetHashCode()

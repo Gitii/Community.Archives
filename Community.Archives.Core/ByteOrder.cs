@@ -10,7 +10,6 @@ public enum ByteOrder
     /// The field value is stored in big-endian (network) order
     /// </summary>
     BigEndian,
-
     /// <summary>
     /// The field value is stored in little-endian order
     /// </summary>

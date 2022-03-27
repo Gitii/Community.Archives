@@ -8,13 +8,17 @@ namespace Community.Archives.Core.Tests;
 [ExcludeFromCodeCoverage]
 public class StreamFixtureFile : IDisposable
 {
+    private readonly bool _isWritable;
+
     public StreamFixtureFile()
     {
         Content = new MemoryStream(Array.Empty<byte>());
+        _isWritable = false;
     }
 
-    public StreamFixtureFile(string archivePath) : this()
+    public StreamFixtureFile(string archivePath, bool isWritable = false) : this()
     {
+        _isWritable = isWritable;
         Load(archivePath);
     }
 
@@ -26,7 +30,7 @@ public class StreamFixtureFile : IDisposable
             Path.Combine(TestContext.CurrentContext.TestDirectory, path)
         );
 
-        Content = new MemoryStream(content, false);
+        Content = new MemoryStream(content, _isWritable);
     }
 
     public void Dispose()

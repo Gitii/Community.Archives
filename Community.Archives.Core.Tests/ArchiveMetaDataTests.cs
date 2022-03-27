@@ -27,26 +27,35 @@ public class ArchiveMetaDataTests
 
     private static object?[] ArchiveMetaDataTestCases =
     {
-        new object?[] { new IArchiveReader.ArchiveMetaData(), new IArchiveReader.ArchiveMetaData(), true },
+        new object?[]
+        {
+            new IArchiveReader.ArchiveMetaData(),
+            new IArchiveReader.ArchiveMetaData(),
+            true
+        },
         new object?[]
         {
             new IArchiveReader.ArchiveMetaData() { Package = "a" },
-            new IArchiveReader.ArchiveMetaData() { Package = "b" }, false
+            new IArchiveReader.ArchiveMetaData() { Package = "b" },
+            false
         },
         new object?[]
         {
             new IArchiveReader.ArchiveMetaData() { Description = "a" },
-            new IArchiveReader.ArchiveMetaData() { Description = "b" }, false
+            new IArchiveReader.ArchiveMetaData() { Description = "b" },
+            false
         },
         new object?[]
         {
             new IArchiveReader.ArchiveMetaData() { Architecture = "a" },
-            new IArchiveReader.ArchiveMetaData() { Architecture = "b" }, false
+            new IArchiveReader.ArchiveMetaData() { Architecture = "b" },
+            false
         },
         new object?[]
         {
             new IArchiveReader.ArchiveMetaData() { Version = "a" },
-            new IArchiveReader.ArchiveMetaData() { Version = "b" }, false
+            new IArchiveReader.ArchiveMetaData() { Version = "b" },
+            false
         }
     };
 

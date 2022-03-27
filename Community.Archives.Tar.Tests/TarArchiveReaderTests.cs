@@ -26,10 +26,7 @@ public class TarArchiveReaderTests : ArchiveReaderTests<TarArchiveReader>
         {
             var inventory = new ArchiveInventoryFixtureFile(inventoryPath, "./");
 
-            await AssertAllFilesAreExtracted(
-                archive.Content,
-                inventory
-            );
+            await AssertAllFilesAreExtracted(archive.Content, inventory);
         }
     }
 
