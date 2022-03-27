@@ -113,7 +113,7 @@ public class ApkPackageReader : IArchiveReader
         );
         var perms = String.Join(
             MANIFEST_ARRAY_SEPARATOR,
-            decodedManifest.SelectWithXPath(
+            decodedManifest.SelectAllWithXPath(
                 "/*/manifest[1]/uses-permission/@name",
                 decodedResources
             )
