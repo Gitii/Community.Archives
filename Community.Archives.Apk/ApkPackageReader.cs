@@ -83,6 +83,12 @@ public class ApkPackageReader : IArchiveReader
         var decodedManifest = await DecodeBinaryXmlAsync(manifest).ConfigureAwait(false);
         var decodedResources = await DecodeResourcesAsync(resources).ConfigureAwait(false);
 
+        return ExtractMetaData(decodedManifest, decodedResources);
+    }
+
+    private IArchiveReader.ArchiveMetaData ExtractMetaData(XDocument decodedManifest,
+        IDictionary<string, IList<string?>> decodedResources)
+    {
         var package = SelectWithXPath(decodedManifest, "/*/manifest[1]/@package", decodedResources);
         var versionName = SelectWithXPath(
             decodedManifest,
