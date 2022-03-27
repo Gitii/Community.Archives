@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 using FluentAssertions;
 using NUnit.Framework;
@@ -12,7 +13,10 @@ public class XDocumentExtensionsTests
     {
         XDocument doc = new XDocument(new XElement("root", "val!"));
 
-        doc.SelectAllWithXPath("/root", new Dictionary<string, IList<string?>>())
+        doc.SelectAllWithXPath(
+                "/root",
+                new Dictionary<string, IList<string?>>(StringComparer.Ordinal)
+            )
             .Should()
             .BeEquivalentTo("val!");
     }
@@ -29,7 +33,7 @@ public class XDocumentExtensionsTests
 
         doc.SelectAllWithXPath(
                 "/root/container/child",
-                new Dictionary<string, IList<string?>>(),
+                new Dictionary<string, IList<string?>>(StringComparer.Ordinal),
                 true
             )
             .Should()
@@ -41,7 +45,10 @@ public class XDocumentExtensionsTests
     {
         XDocument doc = new XDocument(new XElement("root", "val!", new XAttribute("a", "attr!")));
 
-        doc.SelectAllWithXPath("/root/@a", new Dictionary<string, IList<string?>>())
+        doc.SelectAllWithXPath(
+                "/root/@a",
+                new Dictionary<string, IList<string?>>(StringComparer.Ordinal)
+            )
             .Should()
             .BeEquivalentTo("attr!");
     }
@@ -50,15 +57,12 @@ public class XDocumentExtensionsTests
     public void Test_SelectAllWithXPath_ShouldReturnAllAttributeValues()
     {
         XDocument doc = new XDocument(
-            new XElement(
-                "root",
-                new XElement("container", new XAttribute("child", "c1"))
-            )
+            new XElement("root", new XElement("container", new XAttribute("child", "c1")))
         );
 
         doc.SelectAllWithXPath(
                 "/root/container/@child",
-                new Dictionary<string, IList<string?>>(),
+                new Dictionary<string, IList<string?>>(StringComparer.Ordinal),
                 true
             )
             .Should()
@@ -68,16 +72,17 @@ public class XDocumentExtensionsTests
     [Test]
     public void Test_SelectAllWithXPath_ShouldReturnFirstDereferencedValue()
     {
-        XDocument doc = new XDocument(
-            new XElement(
-                "root",
-                new XElement("container", "@1")
-            )
-        );
+        XDocument doc = new XDocument(new XElement("root", new XElement("container", "@1")));
 
         doc.SelectAllWithXPath(
                 "/root/container",
-                new Dictionary<string, IList<string?>>() { { "@1", new List<string?>() { "p", "p2" } } },
+                new Dictionary<string, IList<string?>>(StringComparer.Ordinal)
+                {
+                    {
+                        "@1",
+                        new List<string?>() { "p", "p2" }
+                    }
+                },
                 false
             )
             .Should()
@@ -87,16 +92,17 @@ public class XDocumentExtensionsTests
     [Test]
     public void Test_SelectAllWithXPath_ShouldReturnDereferencedValue()
     {
-        XDocument doc = new XDocument(
-            new XElement(
-                "root",
-                new XElement("container", "@1")
-            )
-        );
+        XDocument doc = new XDocument(new XElement("root", new XElement("container", "@1")));
 
         doc.SelectAllWithXPath(
                 "/root/container",
-                new Dictionary<string, IList<string?>>() { { "@1", new List<string?>() { "p", "p2" } } },
+                new Dictionary<string, IList<string?>>()
+                {
+                    {
+                        "@1",
+                        new List<string?>() { "p", "p2" }
+                    }
+                },
                 true
             )
             .Should()

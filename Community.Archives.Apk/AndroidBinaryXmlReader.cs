@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 
 namespace Community.Archives.Apk;
@@ -151,11 +152,11 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
         var attrValue =
             attributeValueStringIndex >= 0
                 ? RetrieveFromStringTable(attributeValueStringIndex)
-                : attributeResourceId.ToString().Length == 10
+                : attributeResourceId.ToString(CultureInfo.InvariantCulture).Length == 10
                     ? $"@{attributeResourceId:X4}"
-                    : attributeResourceId.ToString();
+                    : attributeResourceId.ToString(CultureInfo.InvariantCulture);
 
-        attribute = new XAttribute(attrName, attrValue);
+        attribute = new XAttribute(attrName!, attrValue!);
         return 20;
     }
 
@@ -170,7 +171,7 @@ public class AndroidBinaryXmlReader : IAndroidBinaryXmlReader
             );
     }
 
-    private string ReadTagName(int tagOffset)
+    private string? ReadTagName(int tagOffset)
     {
         var nameIndexOffset = tagOffset + 5 * 4;
         var nameStringIndex = BitConverter.ToInt32(_xml, nameIndexOffset);

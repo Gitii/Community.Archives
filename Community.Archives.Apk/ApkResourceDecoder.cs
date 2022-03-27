@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Community.Archives.Core;
@@ -60,7 +61,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
     private IDictionary<string, IList<string?>> _responseMap = new Dictionary<
         string,
         IList<string?>
-    >();
+    >(StringComparer.Ordinal);
 
     Dictionary<int, List<string>> _entryMap = new Dictionary<int, List<string>>();
 
@@ -78,7 +79,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     public Task<IDictionary<string, IList<string?>>> DecodeAsync(Stream stream)
     {
-        _responseMap = new Dictionary<string, IList<string?>>();
+        _responseMap = new Dictionary<string, IList<string?>>(StringComparer.Ordinal);
 
         return ExtractDataAsync(stream);
     }
@@ -227,7 +228,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     private void AddKeyValuePairToResponseMap(string resId, string? value)
     {
-        var upperResId = resId.ToUpper();
+        var upperResId = resId.ToUpper(CultureInfo.InvariantCulture);
 
         if (!_responseMap.TryGetValue(upperResId, out var valueList))
         {
@@ -242,7 +243,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
     {
         var headerSuffix = await ms.ReadStructAsync<TypeSuffix>().ConfigureAwait(false);
 
-        Dictionary<string, int> refKeys = new Dictionary<string, int>();
+        Dictionary<string, int> refKeys = new Dictionary<string, int>(StringComparer.Ordinal);
 
         // Skip the config data
         await ms.SkipAsync(
@@ -273,12 +274,13 @@ public class ApkResourceDecoder : IApkResourceDecoder
 
     private void BuildResponseMap(Dictionary<string, int> refKeys)
     {
-        HashSet<string> refKs = new HashSet<string>(refKeys.Keys);
+        HashSet<string> refKs = new HashSet<string>(refKeys.Keys, StringComparer.Ordinal);
 
         foreach (string refK in refKs)
         {
             IList<string?>? values = null;
-            string key = $"@{refKeys[refK].ToString("X4").ToUpper()}";
+            string key =
+                $"@{refKeys[refK].ToString("X4", CultureInfo.InvariantCulture).ToUpper(CultureInfo.InvariantCulture)}";
             if (_responseMap.ContainsKey(key))
             {
                 values = _responseMap[key];
@@ -343,13 +345,17 @@ public class ApkResourceDecoder : IApkResourceDecoder
     {
         var entry = await ms.ReadStructAsync<SimpleEntryBody>().ConfigureAwait(false);
 
-        string idStr = resourceId.ToString("X4");
+        string idStr = resourceId.ToString("X4", CultureInfo.InvariantCulture);
         string keyStr = _keyStringPool[entryHeader.entryKey];
         string? data = null;
 
         _logger.LogDebug($"Entry 0x{idStr}, key: {keyStr}, simple value type: ");
 
-        var key = int.Parse(idStr, System.Globalization.NumberStyles.HexNumber);
+        var key = int.Parse(
+            idStr,
+            System.Globalization.NumberStyles.HexNumber,
+            CultureInfo.InvariantCulture
+        );
 
         if (!_entryMap.TryGetValue(key, out var entryArr))
         {
@@ -369,7 +375,7 @@ public class ApkResourceDecoder : IApkResourceDecoder
                 refKeys.Add(idStr, entry.valueData);
                 break;
             default:
-                data = entry.valueData.ToString();
+                data = entry.valueData.ToString(CultureInfo.InvariantCulture);
                 _logger.LogDebug($", data: {data}");
                 break;
         }

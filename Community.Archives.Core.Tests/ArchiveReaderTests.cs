@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -115,7 +116,7 @@ public abstract class ArchiveReaderTests<T> where T : IArchiveReader, new()
         // and format each one as a hexadecimal string.
         for (int i = 0; i < data.Length; i++)
         {
-            sBuilder.Append(data[i].ToString("x2"));
+            sBuilder.Append(data[i].ToString("x2", CultureInfo.InvariantCulture));
         }
 
         // Return the hexadecimal string.

@@ -51,7 +51,7 @@ internal static class XDocumentExtensions
 
         IEnumerable<string> DereferenceIfUnique(string valueOrReference)
         {
-            if (!valueOrReference.StartsWith("@"))
+            if (!valueOrReference.StartsWith("@", StringComparison.Ordinal))
             {
                 yield return valueOrReference;
             }

@@ -32,7 +32,13 @@ public class ApkPackageReader : IArchiveReader
         while (zip.MoveToNextEntry())
         {
             var item = zip.Entry;
-            if (!item.IsDirectory && regexMatcher.Any((regex) => Regex.IsMatch(item.Key, regex)))
+            if (
+                !item.IsDirectory
+                && regexMatcher.Any(
+                    (regex) =>
+                        Regex.IsMatch(item.Key, regex, RegexOptions.None, TimeSpan.FromSeconds(1))
+                )
+            )
             {
                 var data = new MemoryStream(new byte[item.Size]);
 
@@ -93,21 +99,18 @@ public class ApkPackageReader : IArchiveReader
     )
     {
         var package = decodedManifest.SelectWithXPath("/*/manifest[1]/@package", decodedResources);
-        var versionName =
-            decodedManifest.SelectWithXPath(
-                "/*/manifest[1]/@versionName",
-                decodedResources
-            );
-        var description =
-            decodedManifest.SelectWithXPath(
-                "/*/manifest[1]/application[1]/@label",
-                decodedResources
-            );
-        var versionCode =
-            decodedManifest.SelectWithXPath(
-                "/*/manifest[1]/@versionCode",
-                decodedResources
-            );
+        var versionName = decodedManifest.SelectWithXPath(
+            "/*/manifest[1]/@versionName",
+            decodedResources
+        );
+        var description = decodedManifest.SelectWithXPath(
+            "/*/manifest[1]/application[1]/@label",
+            decodedResources
+        );
+        var versionCode = decodedManifest.SelectWithXPath(
+            "/*/manifest[1]/@versionCode",
+            decodedResources
+        );
         var perms = String.Join(
             MANIFEST_ARRAY_SEPARATOR,
             decodedManifest.SelectWithXPath(
@@ -126,7 +129,7 @@ public class ApkPackageReader : IArchiveReader
             Version = versionName,
             Architecture = string.Empty,
             Description = description,
-            AllFields = new Dictionary<string, string>()
+            AllFields = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 { MANIFEST_VERSION_CODE_KEY, versionCode },
                 { MANIFEST_PERMISSION_ARRAY_KEY, perms },
@@ -140,13 +143,9 @@ public class ApkPackageReader : IArchiveReader
         IDictionary<string, IList<string?>> decodedResources
     )
     {
-        return
-            decodedManifest.SelectAllWithXPath(
-                    "/*/manifest[1]/application[1]/@icon",
-                    decodedResources,
-                    true
-                )
-                .Where((item) => !item.EndsWith(".xml"));
+        return decodedManifest
+            .SelectAllWithXPath("/*/manifest[1]/application[1]/@icon", decodedResources, true)
+            .Where((item) => !item.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
     }
 
     private Task<IDictionary<string, IList<string?>>> DecodeResourcesAsync(Stream resources)
