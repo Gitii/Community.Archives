@@ -92,26 +92,25 @@ public class ApkPackageReader : IArchiveReader
         IDictionary<string, IList<string?>> decodedResources
     )
     {
-        var package = SelectWithXPath(decodedManifest, "/*/manifest[1]/@package", decodedResources);
-        var versionName = SelectWithXPath(
-            decodedManifest,
-            "/*/manifest[1]/@versionName",
-            decodedResources
-        );
-        var description = SelectWithXPath(
-            decodedManifest,
-            "/*/manifest[1]/application[1]/@label",
-            decodedResources
-        );
-        var versionCode = SelectWithXPath(
-            decodedManifest,
-            "/*/manifest[1]/@versionCode",
-            decodedResources
-        );
+        var package = decodedManifest.SelectWithXPath("/*/manifest[1]/@package", decodedResources);
+        var versionName =
+            decodedManifest.SelectWithXPath(
+                "/*/manifest[1]/@versionName",
+                decodedResources
+            );
+        var description =
+            decodedManifest.SelectWithXPath(
+                "/*/manifest[1]/application[1]/@label",
+                decodedResources
+            );
+        var versionCode =
+            decodedManifest.SelectWithXPath(
+                "/*/manifest[1]/@versionCode",
+                decodedResources
+            );
         var perms = String.Join(
             MANIFEST_ARRAY_SEPARATOR,
-            SelectAllWithXPath(
-                decodedManifest,
+            decodedManifest.SelectWithXPath(
                 "/*/manifest[1]/uses-permission/@name",
                 decodedResources
             )
@@ -141,13 +140,13 @@ public class ApkPackageReader : IArchiveReader
         IDictionary<string, IList<string?>> decodedResources
     )
     {
-        return SelectAllWithXPath(
-                decodedManifest,
-                "/*/manifest[1]/application[1]/@icon",
-                decodedResources,
-                true
-            )
-            .Where((item) => !item.EndsWith(".xml"));
+        return
+            decodedManifest.SelectAllWithXPath(
+                    "/*/manifest[1]/application[1]/@icon",
+                    decodedResources,
+                    true
+                )
+                .Where((item) => !item.EndsWith(".xml"));
     }
 
     private Task<IDictionary<string, IList<string?>>> DecodeResourcesAsync(Stream resources)
@@ -155,74 +154,6 @@ public class ApkPackageReader : IArchiveReader
         var decoder = new ApkResourceDecoder(new NullLogger<ApkResourceDecoder>());
 
         return decoder.DecodeAsync(resources);
-    }
-
-    [ExcludeFromCodeCoverage]
-    private string SelectWithXPath(
-        XDocument document,
-        string xpath,
-        IDictionary<string, IList<string?>> resources
-    )
-    {
-        return SelectAllWithXPath(document, xpath, resources).FirstOrDefault() ?? String.Empty;
-    }
-
-    [ExcludeFromCodeCoverage]
-    private IEnumerable<string> SelectAllWithXPath(
-        XDocument document,
-        string xpath,
-        IDictionary<string, IList<string?>> resources,
-        bool all = false
-    )
-    {
-        var selector = document.XPathEvaluate(xpath);
-        if (selector is IEnumerable selectedElements)
-        {
-            foreach (var selectedElement in selectedElements)
-            {
-                if (selectedElement is XAttribute attribute)
-                {
-                    foreach (var value in DereferenceIfUnique(attribute.Value))
-                    {
-                        yield return value;
-                    }
-                }
-
-                if (selectedElement is XElement element)
-                {
-                    foreach (var value in DereferenceIfUnique(element.Value))
-                    {
-                        yield return value;
-                    }
-                }
-            }
-        }
-
-        IEnumerable<string> DereferenceIfUnique(string valueOrReference)
-        {
-            if (!valueOrReference.StartsWith("@"))
-            {
-                yield return valueOrReference;
-            }
-            else
-            {
-                string refKey = valueOrReference;
-                if (resources.TryGetValue(refKey, out var values))
-                {
-                    if (all)
-                    {
-                        foreach (var value in values)
-                        {
-                            yield return value!;
-                        }
-                    }
-                    else
-                    {
-                        yield return values.FirstOrDefault() ?? valueOrReference;
-                    }
-                }
-            }
-        }
     }
 
     private Task<XDocument> DecodeBinaryXmlAsync(Stream manifest)

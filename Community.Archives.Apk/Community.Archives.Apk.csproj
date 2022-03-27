@@ -32,4 +32,10 @@
         <ProjectReference Include="..\Community.Archives.Core\Community.Archives.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Community.Archives.Apk.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
 </Project>
