@@ -12,6 +12,7 @@ namespace Community.Archives.Apk;
 
 public class ApkPackageReader : IArchiveReader
 {
+    public const string MANIFEST_LABEL_KEY = "Label";
     public const string MANIFEST_VERSION_CODE_KEY = "VersionCode";
     public const string MANIFEST_PERMISSION_ARRAY_KEY = "Permissions";
     public const string MANIFEST_ICON_FILE_NAMES_KEY = "Icons";
@@ -103,7 +104,7 @@ public class ApkPackageReader : IArchiveReader
             "/*/manifest[1]/@versionName",
             decodedResources
         );
-        var description = decodedManifest.SelectWithXPath(
+        var label = decodedManifest.SelectWithXPath(
             "/*/manifest[1]/application[1]/@label",
             decodedResources
         );
@@ -128,12 +129,13 @@ public class ApkPackageReader : IArchiveReader
             Package = package,
             Version = versionName,
             Architecture = string.Empty,
-            Description = description,
+            Description = String.Empty,
             AllFields = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 { MANIFEST_VERSION_CODE_KEY, versionCode },
                 { MANIFEST_PERMISSION_ARRAY_KEY, perms },
-                { MANIFEST_ICON_FILE_NAMES_KEY, icons }
+                { MANIFEST_ICON_FILE_NAMES_KEY, icons },
+                { MANIFEST_LABEL_KEY, label }
             }
         };
     }
