@@ -22,13 +22,14 @@ public class ApkPackageReaderTests : ArchiveReaderTests<ApkPackageReader>
                 Package = "de.markusfisch.android.binaryeye",
                 Version = "1.48.1",
                 Architecture = "",
-                Description = "Binary Eye",
+                Description = "",
                 AllFields = new Dictionary<string, string>(StringComparer.Ordinal)
                 {
                     ["VersionCode"] = "93",
                     ["Permissions"] =
                         "android.permission.ACCESS_FINE_LOCATION,android.permission.CAMERA,android.permission.INTERNET,android.permission.VIBRATE,android.permission.WRITE_EXTERNAL_STORAGE,android.permission.CHANGE_WIFI_STATE,android.permission.ACCESS_WIFI_STATE",
-                    ["Icons"] = "res/8X.png,res/u3.png,res/SD.png,res/jy.png,res/D2.png,res/CG.png"
+                    ["Icons"] = "res/8X.png,res/u3.png,res/SD.png,res/jy.png,res/D2.png,res/CG.png",
+                    ["Label"] = "Binary Eye"
                 },
             }
         );
